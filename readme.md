@@ -1,821 +1,424 @@
-# ✨ LuminaCLI
+# ✨ Lumina & LuminaCLI — Autonomous AI Software Engineering Agent & Web Platform
 
 <p align="center">
-  <b>An Autonomous AI Software Engineering Agent that helps developers build, analyze, debug, and automate software workflows directly from the terminal.</b>
+  <b>An Autonomous AI Software Engineering Agent that helps developers build, analyze, debug, and automate workflows directly from the terminal, paired with a Next.js 16 & Express 5 Web Platform.</b>
 </p>
 
 <p align="center">
-  TypeScript • Node.js • Gemini AI • Prisma • PostgreSQL • AI Agents
+  TypeScript • Node.js • Gemini AI • Next.js 16 • React 19 • Express.js 5 • Better Auth • Prisma ORM • PostgreSQL (Neon) • Tailwind CSS
 </p>
 
 ---
 
-# 🚀 Overview
+## 📋 Table of Contents
 
-LuminaCLI is an AI-powered command-line software engineering agent designed to act as a personal AI developer assistant.
+- [🚀 Overview](#-overview)
+- [🎯 Core Goals](#-core-goals)
+- [✨ Features & Agent Capabilities](#-features--agent-capabilities)
+  - [🤖 1. AI Chat Assistant](#-1-ai-chat-assistant)
+  - [🧠 2. Autonomous AI Agent Engine](#-2-autonomous-ai-agent-engine)
+  - [🔧 3. Intelligent Tool Calling](#-3-intelligent-tool-calling)
+  - [📁 4. File System Management](#-4-file-system-management)
+  - [💻 5. Code Generation](#-5-code-generation)
+  - [⚡ 6. Code Execution Engine](#-6-code-execution-engine)
+  - [🔍 7. Web Search Integration](#-7-web-search-integration)
+  - [🐙 8. GitHub Repository Analyzer](#-8-github-repository-analyzer)
+  - [🧠 9. Persistent Memory System](#-9-persistent-memory-system)
+  - [🔐 10. Authentication System](#-10-authentication-system)
+  - [🎨 11. Modern CLI Experience](#-11-modern-cli-experience)
+  - [🛡️ 12. Command Safety Layer](#-12-command-safety-layer)
+  - [🔄 13. Self Correction Loop](#-13-self-correction-loop)
+- [🏗️ Project Architecture & Monorepo Structure](#️-project-architecture--monorepo-structure)
+- [🛠️ Technology Stack](#️-technology-stack)
+- [🔐 Authentication Architecture](#-authentication-architecture)
+  - [1. GitHub OAuth Social Authentication](#1-github-oauth-social-authentication)
+  - [2. CLI Device Authorization Flow](#2-cli-device-authorization-flow)
+- [🗄️ Database Schema & Models](#️-database-schema--models)
+- [⚙️ Environment Variables Setup](#️-environment-variables-setup)
+- [🛠️ Database Setup & Migrations](#️-database-setup--migrations)
+- [🚀 Running the Application](#-running-the-application)
+- [📡 API Endpoints Reference](#-api-endpoints-reference)
+- [🐛 Common Issues & Troubleshooting](#-common-issues--troubleshooting)
+- [👨‍💻 Author & Vision](#-author--vision)
 
-Unlike traditional AI chatbots that only provide answers, LuminaCLI can:
+---
+
+## 🚀 Overview
+
+**LuminaCLI** is an AI-powered command-line software engineering agent designed to act as a personal AI developer assistant. Unlike traditional AI chatbots that only provide text answers, LuminaCLI can:
 
 - Understand complex development tasks
 - Plan solutions autonomously
-- Generate and modify code
+- Generate, edit, and refactor code
 - Analyze existing repositories
-- Execute development commands
-- Use external tools
+- Execute development commands safely
+- Use external tools (Search, Git, Shell, Filesystem)
 - Maintain conversation memory
-- Assist throughout the software development lifecycle
+- Authenticate via GitHub OAuth and Device Authorization Flow
 
-The vision behind LuminaCLI is to create an AI agent that works alongside developers by combining Large Language Models with tools, memory, and automation.
-
----
-
-# 🎯 Goals
-
-LuminaCLI aims to provide:
-
-- An intelligent terminal-based AI assistant
-- Autonomous coding workflows
-- Repository understanding
-- Automated debugging
-- AI-powered development automation
-- Persistent project memory
+It pairs a terminal-based CLI agent with a full-stack web application featuring an **Express 5** backend server (powered by **Better Auth** and **Prisma ORM** over PostgreSQL) and a modern **Next.js 16** frontend dashboard (utilizing **React 19**, **Tailwind CSS**, and **Shadcn UI**).
 
 ---
 
-# ✨ Features
+## 🎯 Core Goals
 
-# 🤖 1. AI Chat Assistant
+- Provide an intelligent terminal-based AI software developer
+- Enable autonomous coding workflows (Plan -> Execute -> Test -> Verify)
+- Deep repository understanding and architecture analysis
+- Automated bug detection and fixing
+- Persistent project memory and context awareness
 
-LuminaCLI provides an interactive AI assistant inside the terminal.
+---
 
-Example:
+## ✨ Features & Agent Capabilities
 
+### 🤖 1. AI Chat Assistant
+Provides an interactive AI assistant inside the terminal.
 ```bash
 lumina
 ```
-
-Conversation:
-
-```
+```text
 > Explain this authentication system
 
 Lumina:
-The authentication system uses OAuth flow...
+The authentication system uses OAuth 2.0 flow integrated with Better Auth...
 ```
 
-Capabilities:
-
-- Natural conversations
-- Programming assistance
-- Technical explanations
-- Code suggestions
-- Documentation help
-
----
-
-# 🧠 2. Autonomous AI Agent
-
-LuminaCLI can independently solve complex tasks.
-
-Example:
-
-```
-Create a complete REST API with authentication
+### 🧠 2. Autonomous AI Agent Engine
+Independently plans and executes multi-step engineering tasks.
+```text
+User Request -> Task Understanding -> Planning -> Tool Selection -> Execution -> Verification -> Final Response
 ```
 
-Agent workflow:
-
-```
-User Request
-
-        ↓
-
-Task Understanding
-
-        ↓
-
-Planning
-
-        ↓
-
-Tool Selection
-
-        ↓
-
-Execution
-
-        ↓
-
-Testing
-
-        ↓
-
-Final Response
-```
-
-The agent decides:
-
-- What steps are required
-- Which tools to use
-- How to verify results
-
----
-
-# 🔧 3. Intelligent Tool Calling
-
-LuminaCLI extends AI capabilities through tools.
-
-Instead of only generating text, the agent can perform actions.
-
-Supported tools:
-
-- File operations
-- Code execution
+### 🔧 3. Intelligent Tool Calling
+Performs concrete actions rather than just generating text:
+- File system operations (read, write, replace, list)
+- Code execution and testing
 - Repository analysis
 - Web search
-- Git operations
+- Git version control
 
-Example:
-
-```
-Find and fix bugs in this project
-```
-
-Agent:
-
-```
-Analyzing files...
-
-Running tests...
-
-Finding issue...
-
-Applying fix...
-```
-
----
-
-# 📁 4. File System Management
-
-LuminaCLI can interact with local projects.
-
-Capabilities:
-
-✅ Read files  
-✅ Create files  
-✅ Update files  
-✅ Delete files  
-✅ Search project structure  
-
-
-Example:
-
-```
+### 📁 4. File System Management
+Read, create, update, delete, and search project files directly:
+```text
 Create a React login component
+-> Created src/components/Login.tsx and src/components/Login.css
 ```
 
-Output:
+### 💻 5. Code Generation
+Generates complete software components, REST APIs, database schemas, and boilerplate following project structure.
 
-```
-Created:
+### ⚡ 6. Code Execution Engine
+Executes development commands, runs tests, installs dependencies, and manages build workflows safely.
 
-src/components/Login.tsx
-src/components/Login.css
-```
+### 🔍 7. Web Search Integration
+Searches online documentation and StackOverflow to solve errors and fetch up-to-date library usages.
+
+### 🐙 8. GitHub Repository Analyzer
+Clones and analyzes external GitHub repositories to provide architecture overviews, code quality insights, and bug identification.
+
+### 🧠 9. Persistent Memory System
+Remembers past conversations, user preferences, and project context across sessions.
+
+### 🔐 10. Authentication System
+Secure authentication powered by Better Auth featuring GitHub OAuth and CLI Device Authorization flow.
+
+### 🎨 11. Modern CLI Experience
+Designed for a beautiful terminal experience with colored output, interactive prompts, spinners, and structured boxes using Chalk, Boxen, Clack, and Ora.
+
+### 🛡️ 12. Command Safety Layer
+Prevents destructive or unsafe command execution with safety checks (SAFE, WARNING, DANGEROUS).
+
+### 🔄 13. Self Correction Loop
+Observes execution errors, analyzes failure outputs, and automatically applies code corrections.
 
 ---
 
-# 💻 5. Code Generation
-
-LuminaCLI can generate complete software components.
-
-Examples:
-
-```
-Create an Express authentication API
-```
-
-```
-Generate a React dashboard
-```
-
-```
-Create database models
-```
-
-Capabilities:
-
-- Generate files
-- Modify existing code
-- Follow project structure
-- Create boilerplate
-
----
-
-# ⚡ 6. Code Execution Engine
-
-LuminaCLI can execute development commands.
-
-Examples:
-
-```
-Run tests
-```
-
-```
-Install dependencies
-```
-
-```
-Build project
-```
-
-Supported operations:
-
-- npm commands
-- Scripts
-- Testing
-- Debugging workflows
-
----
-
-# 🔍 7. Web Search Integration
-
-LuminaCLI can access external information.
-
-Capabilities:
-
-- Search documentation
-- Find solutions
-- Retrieve technical information
-- Understand latest libraries
-
-Example:
-
-```
-Why is Prisma migration failing?
-```
-
-Agent:
-
-```
-Searching documentation...
-
-Possible causes:
-1. Schema mismatch
-2. Database connection issue
-```
-
----
-
-# 🐙 8. GitHub Repository Analyzer
-
-LuminaCLI can understand external repositories.
-
-Example:
-
-```
-Analyze this GitHub repository
-```
-
-The agent can provide:
-
-- Project overview
-- Architecture explanation
-- Technology analysis
-- Code improvement suggestions
-- Bug identification
-
-
-Workflow:
-
-```
-Clone Repository
-
-        ↓
-
-Analyze Files
-
-        ↓
-
-Understand Architecture
-
-        ↓
-
-Generate Insights
-```
-
----
-
-# 🧠 9. Persistent Memory System
-
-LuminaCLI remembers previous interactions.
-
-Stores:
-
-- Conversations
-- User preferences
-- Project context
-- Previous tasks
-
-
-Example:
-
-First session:
-
-```
-I am building an ecommerce application
-```
-
-Later:
-
-```
-Add payment integration
-```
-
-LuminaCLI understands previous context.
-
----
-
-# 🗄️ Database System
-
-Persistent storage using:
-
-- PostgreSQL
-- Prisma ORM
-
-
-Database entities:
-
-```
-User
-
-Conversation
-
-Message
-
-Project
-
-Tool Execution
-```
-
----
-
-# 🔐 10. Authentication System
-
-Secure user authentication.
-
-Features:
-
-- OAuth authentication
-- Device authorization flow
-- User sessions
-- Token management
-
-
-Authentication flow:
-
-```
-User
-
- ↓
-
-OAuth Provider
-
- ↓
-
-Authorization Token
-
- ↓
-
-Session Creation
-
- ↓
-
-Database Storage
-```
-
----
-
-# 🎨 11. Modern CLI Experience
-
-Designed for a beautiful terminal experience.
-
-Features:
-
-- Colored output
-- Interactive prompts
-- Progress indicators
-- Status messages
-- Error handling
-
-
-Libraries:
-
-- Chalk
-- Boxen
-- Clack Prompts
-- Ora
-
----
-
-# 🛡️ 12. Command Safety Layer
-
-LuminaCLI prevents unsafe operations.
-
-Example:
-
-```
-Delete production database
-```
-
-Agent:
-
-```
-⚠️ Warning
-
-This operation may cause data loss.
-
-Continue?
-```
-
-Safety levels:
-
-```
-SAFE
-
-WARNING
-
-DANGEROUS
-```
-
----
-
-# 🔄 13. Self Correction Loop
-
-LuminaCLI can verify and improve its own output.
-
-Workflow:
-
-```
-Generate Code
-
-      ↓
-
-Execute
-
-      ↓
-
-Observe Error
-
-      ↓
-
-Analyze
-
-      ↓
-
-Fix
-
-      ↓
-
-Repeat
-```
-
-Example:
-
-```
-Generated application failed.
-
-Analyzing error...
-
-Applying correction...
-```
-
----
-
-# 🏗️ Architecture
-
-```
-                    User
-                      |
-                      |
-                CLI Interface
-                      |
-                      |
-              Agent Controller
-                      |
-        --------------------------------
-        |                              |
-     Planner                       Executor
-        |                              |
-        |
-       LLM
-        |
- ------------------------------------------------
- |              |              |                |
-Tools        Memory        Database          APIs
- |              |              |
-Files       Context       PostgreSQL
-Git         History
-Shell
-Search
-```
-
----
-
-# 🛠️ Tech Stack
-
-## Core
-
-- TypeScript
-- Node.js
-
-
-## AI
-
-- Google Gemini API
-- Vercel AI SDK
-
-
-## CLI
-
-- Commander.js
-
-
-## Database
-
-- PostgreSQL
-- Prisma ORM
-
-
-## Validation
-
-- Zod
-
-
-## Authentication
-
-- OAuth 2.0
-
-
-## Terminal UI
-
-- Chalk
-- Boxen
-- Clack Prompts
-- Ora
-
----
-
-# 📂 Project Structure
-
-```
-lumina-cli/
-
-src/
-
-├── agent/
-│   ├── agent.ts
-│   ├── planner.ts
-│   ├── executor.ts
-│   └── memory.ts
+## 🏗️ Project Architecture & Monorepo Structure
+
+```text
+lumina/
+├── client/                             # Next.js 16 Frontend Web Application
+│   ├── app/                            # Next.js App Router (Pages, Layouts & Sub-routes)
+│   │   ├── (auth)/                     # Auth Route Group (sign-in layout & page)
+│   │   ├── globals.css                 # Design System Tokens & Tailwind CSS Imports
+│   │   ├── layout.tsx                  # Root App Layout (ThemeProvider & Toaster)
+│   │   └── page.tsx                    # Protected Dashboard (Session Info & Logout)
+│   ├── components/                     # Reusable UI Components
+│   │   ├── login-form.tsx              # GitHub Login Button Component
+│   │   ├── theme-provider.tsx          # React 19 compatible NextThemes Provider
+│   │   └── ui/                         # Shadcn UI Primitives (Button, Card, Form, Toast, etc.)
+│   ├── lib/                            # Frontend Utility Functions & Auth Client
+│   │   ├── auth-client.ts              # Better Auth React Client Instance (`better-auth/react`)
+│   │   └── utils.ts                    # Classname Merger (`clsx` + `tailwind-merge`)
+│   └── package.json
 │
-├── tools/
-│   ├── filesystem.ts
-│   ├── github.ts
-│   ├── shell.ts
-│   └── search.ts
+├── server/                             # Express 5 Backend API Server
+│   ├── prisma/                         # Prisma Database Setup & Schemas
+│   │   ├── migrations/                 # Migration SQL Files
+│   │   └── schema.prisma               # Prisma Data Models (User, Session, Account, etc.)
+│   ├── src/
+│   │   ├── lib/                        # Server Libraries & Configs
+│   │   │   ├── auth.js                 # Better Auth Server Configuration & Device Flow Plugin
+│   │   │   └── db.js                   # Prisma Client Singleton Instance
+│   │   └── index.js                    # Express Application Entry Point & Routes
+│   ├── .env                            # Backend Environment Variables
+│   ├── prisma.config.js                # Prisma Configuration Setup
+│   └── package.json                    # Server Dependencies & Scripts
 │
-├── services/
-│   ├── ai.service.ts
-│   ├── database.service.ts
-│   └── auth.service.ts
-│
-├── database/
-│   └── schema.prisma
-│
-├── commands/
-│   └── commands.ts
-│
-└── index.ts
+└── README.md                           # Master Project Documentation
 ```
 
 ---
 
-# ⚙️ Installation
+## 🛠️ Technology Stack
 
-## Requirements
+### Frontend (`client/`)
+| Technology | Version | Purpose |
+| :--- | :--- | :--- |
+| **Next.js** | `16.3.0` | React Framework (App Router with Turbopack) |
+| **React** | `19.2.8` | UI Library & DOM Reconciler |
+| **Tailwind CSS** | `4.x` | Utility-first CSS Styling System |
+| **Better Auth Client** | `1.6.27` | React Auth Hooks & Client State (`better-auth/react`) |
+| **next-themes** | `0.4.6` | Hydration-safe Dark/Light Theme Switching |
 
-Install:
+### Backend (`server/`)
+| Technology | Version | Purpose |
+| :--- | :--- | :--- |
+| **Node.js** | `>= 18.x` | JavaScript Runtime (ES Modules) |
+| **Express** | `5.2.1` | HTTP Server & Web API Routing |
+| **Better Auth Server** | `1.6.27` | Auth Engine, OAuth Handlers & Device Flow Plugin |
+| **Prisma ORM** | `7.9.1` | Database ORM, Migrations & Client Generator |
+| **PostgreSQL** | `Neon DB` | Cloud Serverless Relational Database |
 
-- Node.js >= 18
-- PostgreSQL
-- Git
+---
 
+## 🔐 Authentication Architecture
 
-Verify:
+### 1. GitHub OAuth Social Authentication
 
-```bash
-node -v
+```text
+[ User Browser ]                  [ Next.js Client ]                [ Express Server ]              [ GitHub OAuth ]
+       |                                  |                                 |                               |
+       |--- Click "Continue with GitHub" ->|                                 |                               |
+       |                                  |--- POST /api/auth/sign-in/social ->|                               |
+       |                                  |    (provider: "github")         |                               |
+       |                                  |                                 |--- Redirect to GitHub ------->|
+       |<--------------------------------- Redirect User to GitHub Auth Page -------------------------------|
+       |                                                                                                    |
+       |--- User Approves App Permissions ----------------------------------------------------------------->|
+       |                                                                                                    |
+       |<--------------------------------- Redirect back to /api/auth/callback/github ----------------------|
+       |                                                                                                    |
+       |                                                                    |--- Exchange Code & Create Session -->
+       |                                                                    |--- Store Session in PostgreSQL --->
+       |<--------------------------------- Set HttpOnly Cookie & Redirect to / ----------------------------|
+```
 
-npm -v
+### 2. CLI Device Authorization Flow
+Configured in `server/src/lib/auth.js` with the `deviceAuthorization` plugin:
+- **Device Code Expiration**: 30 Minutes (`expiresIn: "30m"`)
+- **Polling Interval**: 5 Seconds (`interval: "5s"`)
+- **Device Table**: Stored in PostgreSQL `deviceCode` model for CLI token verification.
+
+---
+
+## 🗄️ Database Schema & Models
+
+The PostgreSQL database schema is defined in [schema.prisma](file:///d:/lumina/server/prisma/schema.prisma):
+
+```prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model DeviceCode {
+  id              String    @id
+  deviceCode      String
+  userCode        String
+  userId          String?
+  expiresAt       DateTime
+  status          String
+  lastPolledAt    DateTime?
+  pollingInterval Int?
+  clientId        String?
+  scope           String?
+
+  @@map("deviceCode")
+}
+
+model Test {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+}
 ```
 
 ---
 
-# Clone Repository
+## ⚙️ Environment Variables Setup
 
-```bash
-git clone https://github.com/YOUR_USERNAME/lumina-cli.git
-
-cd lumina-cli
-```
-
----
-
-# Install Dependencies
-
-```bash
-npm install
-```
-
----
-
-# Environment Setup
-
-Create:
-
-```
-.env
-```
-
-Add:
+Create a `.env` file in the `server/` directory (`server/.env`):
 
 ```env
-GEMINI_API_KEY=
+# Server Port
+PORT=3005
 
-DATABASE_URL=
+# PostgreSQL Database Connection Strings (Neon DB)
+DATABASE_URL="postgresql://neondb_owner:<password>@<host>/neondb?sslmode=require&channel_binding=require"
+DIRECT_URL="postgresql://neondb_owner:<password>@<host>/neondb?sslmode=require"
 
-AUTH_SECRET=
+# Better Auth Secret & Public URL
+BETTER_AUTH_SECRET=your_generated_secret_key_here
+BETTER_AUTH_URL=http://localhost:3005
+
+# GitHub OAuth App Credentials
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
 ```
 
 ---
 
-# Database Setup
+## 🛠️ Database Setup & Migrations
 
-Generate Prisma client:
+To set up the database:
 
-```bash
-npx prisma generate
-```
+1. **Navigate to the server directory:**
+   ```bash
+   cd server
+   ```
 
-Run migrations:
+2. **Generate the Prisma Client:**
+   ```bash
+   npx prisma generate
+   ```
 
-```bash
-npx prisma migrate dev
-```
+3. **Push Schema Models to Database (Neon PostgreSQL):**
+   ```bash
+   npx prisma db push
+   ```
+
+4. *(Optional)* Regenerate Better Auth schema models if updating plugins:
+   ```bash
+   npx @better-auth/cli generate --config ./src/lib/auth.js
+   ```
 
 ---
 
-# Running Application
+## 🚀 Running the Application
 
-Development:
-
+### 1. Launch the Backend API Server
 ```bash
+cd server
 npm run dev
 ```
+*Server will listen at `http://localhost:3005`.*
 
-Production:
-
+### 2. Launch the Next.js Client
 ```bash
-npm run build
-
-npm start
+cd client
+npm run dev
 ```
+*Client will listen at `http://localhost:3000`.*
 
 ---
 
-# Example Commands
+## 📡 API Endpoints Reference
 
-Start agent:
-
-```bash
-lumina
-```
-
-Chat:
-
-```
-Explain this project
-```
-
-Generate:
-
-```
-Create authentication system
-```
-
-Analyze:
-
-```
-Analyze this repository
-```
-
-Debug:
-
-```
-Fix this error
-```
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/health` | Server Health Check (`OK`) |
+| `GET` | `/api/me` | Fetch Current Authenticated User Session |
+| `POST` | `/api/auth/sign-in/social` | Initiate OAuth Flow (`{ provider: "github", callbackURL: "http://localhost:3000" }`) |
+| `GET` | `/api/auth/callback/github` | Better Auth OAuth Callback Endpoint |
+| `POST` | `/api/auth/sign-out` | Destroy Session & Revoke Auth Cookies |
+| `ALL` | `/api/auth/*` | Better Auth Express Request Handler |
 
 ---
 
-# 🛣️ Development Roadmap
+## 🐛 Common Issues & Troubleshooting
 
-## Phase 1: Foundation
+### 1. `Cannot find name 'ThemeProvider'`
+- **Fix**: Ensure `ThemeProvider` is imported from `@/components/theme-provider` inside `app/layout.tsx`.
 
-- [ ] TypeScript setup
-- [ ] CLI framework
-- [ ] Gemini integration
-- [ ] Basic chat
+### 2. `Encountered a script tag while rendering React component`
+- **Fix**: In React 19 / Next.js 16, pass `scriptProps={{ async: true }}` to `<NextThemesProvider>` inside `components/theme-provider.tsx` and place `<ThemeProvider>` inside `<body>` in `app/layout.tsx`.
 
-
-## Phase 2: Agent System
-
-- [ ] Agent loop
-- [ ] Planning system
-- [ ] Tool calling
-- [ ] File operations
-
-
-## Phase 3: Developer Tools
-
-- [ ] Code execution
-- [ ] GitHub analysis
-- [ ] Web search
-- [ ] Code generation
-
-
-## Phase 4: Production Features
-
-- [ ] PostgreSQL integration
-- [ ] Prisma models
-- [ ] Authentication
-- [ ] Conversation history
-
-
-## Phase 5: Advanced AI
-
-- [ ] RAG system
-- [ ] Vector database
-- [ ] Multi-agent architecture
-- [ ] Self-correction loops
+### 3. `Model verification does not exist in the database`
+- **Fix**: Run `npx @better-auth/cli generate` followed by `npx prisma db push` and `npx prisma generate` in the `server` directory to update Prisma models.
 
 ---
 
-# 📚 Learning Outcomes
+## 👨‍💻 Author & Vision
 
-This project covers:
+**Piyush Kumar**  
+B.Tech Student @ IIITDM Jabalpur  
+GitHub: [@piyushkumariiitj](https://github.com/piyushkumariiitj)
 
-## AI Engineering
-
-- LLM APIs
-- AI agents
-- Tool calling
-- Prompt engineering
-- Memory systems
-
-
-## Backend Engineering
-
-- Node.js
-- Databases
-- Authentication
-- System architecture
-
-
-## Software Engineering
-
-- TypeScript
-- Clean architecture
-- CLI development
-- Production practices
-
----
-
-# 👨‍💻 Author
-
-**Piyush Kumar**
-
-B.Tech Student @ IIITDM Jabalpur
-
-Interested in:
-
-- Artificial Intelligence
-- Software Development
-- Autonomous Agents
-
----
-
-# ⭐ Vision
-
-LuminaCLI represents the future of developer tooling where AI agents move beyond answering questions and actively collaborate with developers to build software.
+> *LuminaCLI represents the future of developer tooling where AI agents move beyond answering questions and actively collaborate with developers to build software.*
