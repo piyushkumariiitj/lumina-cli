@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///D:/lumina/client/components/ui/separator.tsx"],"sourcesContent":["\"use client\"\n\nimport { Separator as SeparatorPrimitive } from \"@base-ui/react/separator\"\n\nimport { cn } from \"@/lib/utils\"\n\nfunction Separator({\n  className,\n  orientation = \"horizontal\",\n  ...props\n}: SeparatorPrimitive.Props) {\n  return (\n    <SeparatorPrimitive\n      data-slot=\"separator\"\n      orientation={orientation}\n      className={cn(\n        \"shrink-0 bg-border data-horizontal:h-px data-horizontal:w-full data-vertical:w-px data-vertical:self-stretch\",\n        className\n      )}\n      {...props}\n    />\n  )\n}\n\nexport { Separator }\n"],"names":["Separator","className","orientation","props"],"mappings":";;;;;AAEA;AAEA;AAJA;;;;AAMA,SAASA,UAAU,EACjBC,SAAS,EACTC,cAAc,YAAY,EAC1B,GAAGC,OACsB;IACzB,qBACE,8OAAC,6KAAkB;QACjB,aAAU;QACVD,aAAaA;QACbD,WAAW,IAAA,kHAAE,EACX,gHACAA;QAED,GAAGE,KAAK;;;;;;AAGf"}},
-    {"offset": {"line": 32, "column": 0}, "map": {"version":3,"sources":["file:///D:/lumina/client/lib/utils.ts"],"sourcesContent":["import { clsx, type ClassValue } from \"clsx\"\nimport { twMerge } from \"tailwind-merge\"\n\nexport function cn(...inputs: ClassValue[]) {\n  return twMerge(clsx(inputs))\n}\n"],"names":["cn","inputs"],"mappings":";;;;AAAA;AACA;;;AAEO,SAASA,GAAG,GAAGC,MAAoB;IACxC,OAAO,IAAA,sKAAO,EAAC,IAAA,6IAAI,EAACA;AACtB"}}]
-}
