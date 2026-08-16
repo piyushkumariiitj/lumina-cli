@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  TypeScript • Node.js • Gemini AI • Next.js 16 • React 19 • Express.js 5 • Better Auth • Prisma ORM • PostgreSQL (Neon DB) • Tailwind CSS
+  TypeScript • Node.js • Gemini AI (gemini-2.5-flash) • Vercel AI SDK • Next.js 16 • React 19 • Express.js 5 • Better Auth • Prisma ORM • PostgreSQL (Neon DB) • Tailwind CSS
 </p>
 
 ---
@@ -15,6 +15,7 @@
 - [🚀 Overview](#-overview)
 - [🎯 Core Goals](#-core-goals)
 - [✨ Features & Agent Capabilities](#-features--agent-capabilities)
+- [🤖 Google Gemini AI Engine Architecture](#-google-gemini-ai-engine-architecture)
 - [📊 Comprehensive Visual Architecture (Mermaid Flowcharts & Graphs)](#-comprehensive-visual-architecture-mermaid-flowcharts--graphs)
   - [1. Monorepo System Topology](#1-monorepo-system-topology)
   - [2. End-to-End CLI Device Authorization Sequence](#2-end-to-end-cli-device-authorization-sequence)
@@ -35,11 +36,12 @@
 
 ## 🚀 Overview
 
-**LuminaCLI** is an AI-powered command-line software engineering agent designed to act as an autonomous developer assistant. Unlike traditional chat interfaces that only generate static text snippets, LuminaCLI can:
+**LuminaCLI** is an AI-powered command-line software engineering agent designed to act as an autonomous developer assistant. Powered by **Google Gemini 2.5 Flash** (`@ai-sdk/google`) and Vercel AI SDK (`ai`), LuminaCLI can:
 
 - Understand complex multi-file development tasks
 - Plan technical implementations autonomously
 - Create, modify, and refactor codebase files
+- Stream responses in real-time using `streamText`
 - Execute shell & terminal development commands
 - Perform online web search and documentation lookups
 - Maintain persistent conversation memory
@@ -52,6 +54,7 @@ It pairs a terminal-based CLI binary agent (`lumina`) with a full-stack web appl
 ## 🎯 Core Goals
 
 - **Terminal-First AI Pair Programmer**: Enable developers to analyze and modify code directly inside their command prompt.
+- **Google Gemini-Powered Intelligence**: Leverage `gemini-2.5-flash` with Vercel AI SDK for ultra-fast, high-reasoning code generation and streaming responses.
 - **Autonomous Task Execution**: Follow structured planning workflows (`Plan` -> `Execute` -> `Test` -> `Verify`).
 - **Context-Aware Memory**: Retain codebase awareness across commands and developer sessions.
 - **Enterprise-Grade Security**: Secure CLI authentication using standard OAuth 2.0 Device Code Authorization (RFC 8628).
@@ -60,8 +63,8 @@ It pairs a terminal-based CLI binary agent (`lumina`) with a full-stack web appl
 
 ## ✨ Features & Agent Capabilities
 
-### 🤖 1. Interactive Terminal Assistant
-Command-line assistant for code explanation, refactoring, and debugging.
+### 🤖 1. Interactive Terminal Assistant & Gemini AI Service
+Command-line assistant powered by `AIService` (`server/src/cli/ai/google-service.js`) with support for text streaming (`sendMessage`), non-streaming responses (`getMessage`), and structured schema generation (`generateObject`).
 
 ### 🧠 2. Autonomous Agent Planning
 Deconstructs complex user prompts into step-by-step technical plans before executing code changes.
@@ -77,11 +80,75 @@ Features fast-path API session queries, abort timeouts, and automatic fallback d
 
 ---
 
+## 🤖 Google Gemini AI Engine Architecture
+
+Lumina CLI uses the Vercel AI SDK (`ai`) and Google provider (`@ai-sdk/google`) configured in [`server/src/config/google.config.js`](file:///d:/lumina/server/src/config/google.config.js) and [`server/src/cli/ai/google-service.js`](file:///d:/lumina/server/src/cli/ai/google-service.js):
+
+### 1. Configuration (`server/src/config/google.config.js`)
+```javascript
+import dotenv from 'dotenv';
+dotenv.config();
+
+export const config = {
+  googleApiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || '',
+  model: process.env.LUMINA_MODEL || 'gemini-2.5-flash',
+};
+```
+
+### 2. AI Service Implementation (`server/src/cli/ai/google-service.js`)
+```javascript
+import { google } from "@ai-sdk/google";
+import { streamText, generateObject } from "ai";
+import { config } from "../../config/google.config.js";
+
+export class AIService {
+  constructor() {
+    if (!config.googleApiKey) {
+      throw new Error("GOOGLE_GENERATIVE_AI_API_KEY is not set in environment variables");
+    }
+    
+    this.model = google(config.model, {
+      apiKey: config.googleApiKey,
+    });
+  }
+
+  async sendMessage(messages, onChunk) {
+    const result = streamText({
+      model: this.model,
+      messages: messages
+    });
+    
+    let fullResponse = "";
+    for await (const chunk of result.textStream) {
+      fullResponse += chunk;
+      if (onChunk) onChunk(chunk);
+    }
+
+    const fullResult = await result;
+    return {
+      content: fullResponse,
+      finishReason: fullResult.finishReason,
+      usage: fullResult.usage,
+    };
+  }
+
+  async getMessage(messages) {
+    let fullResponse = "";
+    await this.sendMessage(messages, (chunk) => {
+      fullResponse += chunk;
+    });
+    return fullResponse;
+  }
+}
+```
+
+---
+
 ## 📊 Comprehensive Visual Architecture (Mermaid Flowcharts & Graphs)
 
 ### 1. Monorepo System Topology
 
-The diagram below illustrates the relationship between the terminal CLI client, Next.js web application, Express 5 backend server, and the cloud Neon PostgreSQL database.
+The diagram below illustrates the relationship between the terminal CLI client, Gemini AI engine, Next.js web application, Express 5 backend server, and the cloud Neon PostgreSQL database.
 
 ```mermaid
 graph TD
@@ -99,7 +166,12 @@ graph TD
         LoginCmd["lumina login"]
         WhoamiCmd["lumina whoami"]
         LogoutCmd["lumina logout"]
+        AIServiceModule["AI Engine (src/cli/ai/google-service.js)"]
         TokenFile["Local Credentials (~/.better-auth/token.json)"]
+    end
+
+    subgraph ExternalServices ["External Cloud AI Services"]
+        GeminiAI["Google Gemini API (gemini-2.5-flash)"]
     end
 
     subgraph Server ["Express 5 Backend Server (Port 3005)"]
@@ -114,6 +186,7 @@ graph TD
     end
 
     CLI -->|1. Device Auth Request| AuthServer
+    AIServiceModule -->|2. Stream Text & Generate Code| GeminiAI
     LoginCmd -->|Store Token| TokenFile
     WhoamiCmd -->|Read Token| TokenFile
     LogoutCmd -->|Clear Token| TokenFile
@@ -322,15 +395,19 @@ lumina/
 │   │   └── schema.prisma               # Relational Schema Specification
 │   ├── src/
 │   │   ├── cli/                        # Lumina CLI Implementation
+│   │   │   ├── ai/                     # AI Engine & Provider Services
+│   │   │   │   └── google-service.js   # Gemini AI Service (`streamText`, `sendMessage`, `getMessage`)
 │   │   │   ├── commands/auth/login.js  # CLI login, logout, & whoami Action Handlers
 │   │   │   └── main.js                 # CLI Binary Entry Point, ASCII Figlet & Commander Setup
+│   │   ├── config/                     # Server & AI Configurations
+│   │   │   └── google.config.js        # Google Generative AI Model & API Key Configuration
 │   │   ├── lib/                        # Server Shared Libraries
 │   │   │   ├── auth.js                 # Better Auth Express Instance & Device Authorization Plugin
 │   │   │   ├── db.js                   # Prisma Client & PostgreSQL Connection Pool Instance
 │   │   │   └── token.js                # Token File Utilities (~/.better-auth/token.json)
 │   │   └── index.js                    # Express Application Entry Point (/api/auth/*, /api/me)
 │   ├── .env                            # Backend Server Environment Variables
-│   └── package.json                    # Server Dependencies & Binary Bin Script (`lumina`)
+│   └── package.json                    # Server Dependencies (`@ai-sdk/google`, `ai`, `better-auth`)
 │
 └── README.md                           # Master Architecture Documentation
 ```
@@ -353,6 +430,8 @@ lumina/
 | Technology | Version | Purpose |
 | :--- | :--- | :--- |
 | **Node.js** | `>= 18.x` | JavaScript Runtime (ES Modules) |
+| **Google Gemini AI** | `@ai-sdk/google` | Generative AI Provider (`gemini-2.5-flash`) |
+| **Vercel AI SDK** | `ai` | AI Streaming & Structured Object Generation |
 | **Express** | `5.2.1` | HTTP Server & Web API Routing |
 | **Better Auth Server** | `1.6.27` | Auth Engine & Device Authorization Plugin |
 | **Prisma ORM** | `7.9.1` | Database ORM & Migrations |
@@ -526,6 +605,10 @@ BETTER_AUTH_URL=http://localhost:3005
 # GitHub OAuth App Credentials
 GITHUB_CLIENT_ID=your_github_client_id
 GITHUB_CLIENT_SECRET=your_github_client_secret
+
+# Google Gemini AI Config
+GOOGLE_GENERATIVE_AI_API_KEY=your_google_ai_api_key_here
+LUMINA_MODEL=gemini-2.5-flash
 ```
 
 ---
