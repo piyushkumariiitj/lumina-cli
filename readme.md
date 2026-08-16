@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  TypeScript • Node.js • Gemini AI • Next.js 16 • React 19 • Express.js 5 • Better Auth • Prisma ORM • PostgreSQL (Neon) • Tailwind CSS
+  TypeScript • Node.js • Gemini AI • Next.js 16 • React 19 • Express.js 5 • Better Auth • Prisma ORM • PostgreSQL (Neon DB) • Tailwind CSS
 </p>
 
 ---
@@ -15,158 +15,324 @@
 - [🚀 Overview](#-overview)
 - [🎯 Core Goals](#-core-goals)
 - [✨ Features & Agent Capabilities](#-features--agent-capabilities)
-  - [🤖 1. AI Chat Assistant](#-1-ai-chat-assistant)
-  - [🧠 2. Autonomous AI Agent Engine](#-2-autonomous-ai-agent-engine)
-  - [🔧 3. Intelligent Tool Calling](#-3-intelligent-tool-calling)
-  - [📁 4. File System Management](#-4-file-system-management)
-  - [💻 5. Code Generation](#-5-code-generation)
-  - [⚡ 6. Code Execution Engine](#-6-code-execution-engine)
-  - [🔍 7. Web Search Integration](#-7-web-search-integration)
-  - [🐙 8. GitHub Repository Analyzer](#-8-github-repository-analyzer)
-  - [🧠 9. Persistent Memory System](#-9-persistent-memory-system)
-  - [🔐 10. Authentication System](#-10-authentication-system)
-  - [🎨 11. Modern CLI Experience](#-11-modern-cli-experience)
-  - [🛡️ 12. Command Safety Layer](#-12-command-safety-layer)
-  - [🔄 13. Self Correction Loop](#-13-self-correction-loop)
-- [🏗️ Project Architecture & Monorepo Structure](#️-project-architecture--monorepo-structure)
+- [📊 Comprehensive Visual Architecture (Mermaid Flowcharts & Graphs)](#-comprehensive-visual-architecture-mermaid-flowcharts--graphs)
+  - [1. Monorepo System Topology](#1-monorepo-system-topology)
+  - [2. End-to-End CLI Device Authorization Sequence](#2-end-to-end-cli-device-authorization-sequence)
+  - [3. CLI Auth Commands Decision Tree](#3-cli-auth-commands-decision-tree)
+  - [4. Database Entity Relationship Diagram (ERD)](#4-database-entity-relationship-diagram-erd)
+- [🏗️ Monorepo Structure & File Map](#️-monorepo-structure--file-map)
 - [🛠️ Technology Stack](#️-technology-stack)
-- [🔐 Authentication Architecture](#-authentication-architecture)
-  - [1. GitHub OAuth Social Authentication](#1-github-oauth-social-authentication)
-  - [2. CLI Device Authorization Flow](#2-cli-device-authorization-flow)
-- [🗄️ Database Schema & Models](#️-database-schema--models)
+- [🔐 Authentication System Details](#-authentication-system-details)
+- [🗄️ Database Schema Specification](#️-database-schema-specification)
+- [💻 CLI Commands Reference](#-cli-commands-reference)
 - [⚙️ Environment Variables Setup](#️-environment-variables-setup)
-- [🛠️ Database Setup & Migrations](#️-database-setup--migrations)
-- [🚀 Running the Application](#-running-the-application)
+- [🛠️ Setup & Running Locally](#️-setup--running-locally)
 - [📡 API Endpoints Reference](#-api-endpoints-reference)
-- [🐛 Common Issues & Troubleshooting](#-common-issues--troubleshooting)
-- [👨‍💻 Author & Vision](#-author--vision)
+- [🐛 Solved Edge Cases & Troubleshooting Guide](#-solved-edge-cases--troubleshooting-guide)
+- [👨‍💻 Author & License](#-author--license)
 
 ---
 
 ## 🚀 Overview
 
-**LuminaCLI** is an AI-powered command-line software engineering agent designed to act as a personal AI developer assistant. Unlike traditional AI chatbots that only provide text answers, LuminaCLI can:
+**LuminaCLI** is an AI-powered command-line software engineering agent designed to act as an autonomous developer assistant. Unlike traditional chat interfaces that only generate static text snippets, LuminaCLI can:
 
-- Understand complex development tasks
-- Plan solutions autonomously
-- Generate, edit, and refactor code
-- Analyze existing repositories
-- Execute development commands safely
-- Use external tools (Search, Git, Shell, Filesystem)
-- Maintain conversation memory
-- Authenticate via GitHub OAuth and Device Authorization Flow
+- Understand complex multi-file development tasks
+- Plan technical implementations autonomously
+- Create, modify, and refactor codebase files
+- Execute shell & terminal development commands
+- Perform online web search and documentation lookups
+- Maintain persistent conversation memory
+- Authenticate securely via GitHub OAuth 2.0 and OAuth Device Authorization Flow
 
-It pairs a terminal-based CLI agent with a full-stack web application featuring an **Express 5** backend server (powered by **Better Auth** and **Prisma ORM** over PostgreSQL) and a modern **Next.js 16** frontend dashboard (utilizing **React 19**, **Tailwind CSS**, and **Shadcn UI**).
+It pairs a terminal-based CLI binary agent (`lumina`) with a full-stack web application featuring an **Express 5** backend server (powered by **Better Auth** and **Prisma ORM** over PostgreSQL) and a modern **Next.js 16** frontend dashboard (utilizing **React 19**, **Tailwind CSS**, **Sonner**, and **Shadcn UI**).
 
 ---
 
 ## 🎯 Core Goals
 
-- Provide an intelligent terminal-based AI software developer
-- Enable autonomous coding workflows (Plan -> Execute -> Test -> Verify)
-- Deep repository understanding and architecture analysis
-- Automated bug detection and fixing
-- Persistent project memory and context awareness
+- **Terminal-First AI Pair Programmer**: Enable developers to analyze and modify code directly inside their command prompt.
+- **Autonomous Task Execution**: Follow structured planning workflows (`Plan` -> `Execute` -> `Test` -> `Verify`).
+- **Context-Aware Memory**: Retain codebase awareness across commands and developer sessions.
+- **Enterprise-Grade Security**: Secure CLI authentication using standard OAuth 2.0 Device Code Authorization (RFC 8628).
 
 ---
 
 ## ✨ Features & Agent Capabilities
 
-### 🤖 1. AI Chat Assistant
-Provides an interactive AI assistant inside the terminal.
-```bash
-lumina
-```
-```text
-> Explain this authentication system
+### 🤖 1. Interactive Terminal Assistant
+Command-line assistant for code explanation, refactoring, and debugging.
 
-Lumina:
-The authentication system uses OAuth 2.0 flow integrated with Better Auth...
-```
+### 🧠 2. Autonomous Agent Planning
+Deconstructs complex user prompts into step-by-step technical plans before executing code changes.
 
-### 🧠 2. Autonomous AI Agent Engine
-Independently plans and executes multi-step engineering tasks.
-```text
-User Request -> Task Understanding -> Planning -> Tool Selection -> Execution -> Verification -> Final Response
-```
+### 🔧 3. Intelligent Tool Execution
+Safely executes filesystem modifications, shell commands, code syntax validation, git operations, and web searches.
 
-### 🔧 3. Intelligent Tool Calling
-Performs concrete actions rather than just generating text:
-- File system operations (read, write, replace, list)
-- Code execution and testing
-- Repository analysis
-- Web search
-- Git version control
+### 🔐 4. OAuth Device Authorization (RFC 8628)
+Enables headless terminal authentication via browser verification.
 
-### 📁 4. File System Management
-Read, create, update, delete, and search project files directly:
-```text
-Create a React login component
--> Created src/components/Login.tsx and src/components/Login.css
-```
-
-### 💻 5. Code Generation
-Generates complete software components, REST APIs, database schemas, and boilerplate following project structure.
-
-### ⚡ 6. Code Execution Engine
-Executes development commands, runs tests, installs dependencies, and manages build workflows safely.
-
-### 🔍 7. Web Search Integration
-Searches online documentation and StackOverflow to solve errors and fetch up-to-date library usages.
-
-### 🐙 8. GitHub Repository Analyzer
-Clones and analyzes external GitHub repositories to provide architecture overviews, code quality insights, and bug identification.
-
-### 🧠 9. Persistent Memory System
-Remembers past conversations, user preferences, and project context across sessions.
-
-### 🔐 10. Authentication System
-Secure authentication powered by Better Auth featuring GitHub OAuth and CLI Device Authorization flow.
-
-### 🎨 11. Modern CLI Experience
-Designed for a beautiful terminal experience with colored output, interactive prompts, spinners, and structured boxes using Chalk, Boxen, Clack, and Ora.
-
-### 🛡️ 12. Command Safety Layer
-Prevents destructive or unsafe command execution with safety checks (SAFE, WARNING, DANGEROUS).
-
-### 🔄 13. Self Correction Loop
-Observes execution errors, analyzes failure outputs, and automatically applies code corrections.
+### ⚡ 5. Resilient Resilience Engine
+Features fast-path API session queries, abort timeouts, and automatic fallback database lookups.
 
 ---
 
-## 🏗️ Project Architecture & Monorepo Structure
+## 📊 Comprehensive Visual Architecture (Mermaid Flowcharts & Graphs)
+
+### 1. Monorepo System Topology
+
+The diagram below illustrates the relationship between the terminal CLI client, Next.js web application, Express 5 backend server, and the cloud Neon PostgreSQL database.
+
+```mermaid
+graph TD
+    subgraph Client ["Next.js 16 Frontend (Port 3000)"]
+        Dashboard["Dashboard (app/page.tsx)"]
+        SignIn["Sign-In Page (app/(auth)/sign-in/page.tsx)"]
+        DevicePage["Device Entry Page (app/device/page.tsx)"]
+        ApprovePage["Device Approval Page (app/approve/page.tsx)"]
+        AuthReactClient["Better Auth React Client (lib/auth-client.ts)"]
+        Toasters["Sonner & Base-UI Toast Provider (app/layout.tsx)"]
+    end
+
+    subgraph CLI ["Lumina CLI Engine"]
+        CLIMain["CLI Entry Point (bin/lumina | src/cli/main.js)"]
+        LoginCmd["lumina login"]
+        WhoamiCmd["lumina whoami"]
+        LogoutCmd["lumina logout"]
+        TokenFile["Local Credentials (~/.better-auth/token.json)"]
+    end
+
+    subgraph Server ["Express 5 Backend Server (Port 3005)"]
+        ExpressApp["Express API Server (src/index.js)"]
+        AuthServer["Better Auth Server Engine (src/lib/auth.js)"]
+        DevicePlugin["Device Authorization Plugin"]
+        PrismaInstance["Prisma Client Singleton (src/lib/db.js)"]
+    end
+
+    subgraph Database ["Database Layer"]
+        PgDatabase[("Neon PostgreSQL Database")]
+    end
+
+    CLI -->|1. Device Auth Request| AuthServer
+    LoginCmd -->|Store Token| TokenFile
+    WhoamiCmd -->|Read Token| TokenFile
+    LogoutCmd -->|Clear Token| TokenFile
+
+    Client -->|OAuth Redirect & Auth Calls| ExpressApp
+    AuthReactClient -->|HTTP API Hooks| AuthServer
+    ExpressApp --> AuthServer
+    AuthServer --> PrismaInstance
+    PrismaInstance --> PgDatabase
+```
+
+---
+
+### 2. End-to-End CLI Device Authorization Sequence
+
+This diagram details the exact sequence of events when a developer executes `lumina login`, approves the request in the browser, and receives an authentication token in the terminal.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Developer
+    participant CLI as Lumina CLI
+    participant Browser as Browser Client (Port 3000)
+    participant Server as Express Server (Port 3005)
+    participant DB as Neon PostgreSQL DB
+
+    User->>CLI: Executes 'lumina login'
+    CLI->>Server: POST /api/auth/device/code (client_id, scope)
+    Server->>DB: Creates pending DeviceCode record
+    Server-->>CLI: Returns user_code, device_code & verification_uri_complete
+    CLI->>User: Displays user_code & opens browser at /device?user_code=XXXX-YYYY
+
+    alt User Not Authenticated
+        Browser->>Browser: Detects no active session
+        Browser->>User: Prompts sign-in (/sign-in?callbackUrl=/approve?user_code=XXXX-YYYY)
+        User->>Browser: Authenticates via GitHub OAuth
+        Browser->>Server: GitHub OAuth Callback & Session Creation
+        Server-->>Browser: Sets HttpOnly Cookie & redirects to /approve?user_code=XXXX-YYYY
+    else User Already Authenticated
+        Browser->>Browser: Automatically forwards /device to /approve?user_code=XXXX-YYYY
+    end
+
+    Browser->>Server: GET /api/auth/device?user_code=XXXX-YYYY (Verify & Claim Code)
+    Server->>DB: Binds userId to DeviceCode record
+    Server-->>Browser: Returns device status ('pending')
+    Browser->>User: Renders Approval Card (Account Email & User Code)
+
+    User->>Browser: Clicks 'Approve Device'
+    Browser->>Server: POST /api/auth/device/approve ({ userCode })
+    Server->>DB: Updates DeviceCode status to 'approved'
+    Server-->>Browser: Returns { success: true }
+    Browser-->>User: Shows 'Device Authorized!' notification
+
+    loop Polling Loop (interval: 5s)
+        CLI->>Server: POST /api/auth/device/token ({ grant_type, device_code })
+        Server->>DB: Queries DeviceCode status
+    end
+    Server-->>CLI: Returns Access Token ({ access_token, expires_in })
+    CLI->>CLI: Stores token to ~/.better-auth/token.json
+    CLI-->>User: Outputs '✅ Login successful! Welcome <User>'
+```
+
+---
+
+### 3. CLI Auth Commands Decision Tree
+
+Flowchart showing how `login`, `whoami`, and `logout` evaluate credentials and execute.
+
+```mermaid
+flowchart TD
+    Start([User Runs Lumina CLI Command]) --> CommandChoice{Which Command?}
+
+    CommandChoice -->|lumina login| CheckExisting{Token in ~/.better-auth/token.json?}
+    CheckExisting -->|Token Valid| AskReauth[Prompt: Already logged in. Re-authenticate?]
+    AskReauth -->|No| CancelLogin[Cancel & Exit 0]
+    AskReauth -->|Yes| ReqDeviceCode[POST /api/auth/device/code]
+    CheckExisting -->|No Token / Expired| ReqDeviceCode
+    ReqDeviceCode --> PrintCode[Display User Code & Open Browser]
+    PrintCode --> StartPolling[Poll POST /api/auth/device/token every 5s]
+    StartPolling --> ReceiveToken[Receive Access Token]
+    ReceiveToken --> SaveToken[Save to ~/.better-auth/token.json]
+    SaveToken --> LoginDone([Output Welcome Message])
+
+    CommandChoice -->|lumina whoami| CheckTokenFile{Token File Exists & Valid?}
+    CheckTokenFile -->|No / Expired| OutputLoggedOut[Output: You are currently logged out]
+    OutputLoggedOut --> WhoamiDone([Exit 0])
+    CheckTokenFile -->|Yes| TryAPI[Fetch GET /api/me with 500ms timeout]
+    TryAPI -->|Success| ShowUser[Output: User Name, Email, & ID]
+    TryAPI -->|Timeout / Offline| TryPrisma[Query Prisma DB directly]
+    TryPrisma -->|Success| ShowUser
+    TryPrisma -->|DB Error| ShowDBError[Output: Could not connect to server or DB]
+    ShowDBError --> WhoamiError([Exit 1])
+    ShowUser --> WhoamiDone
+
+    CommandChoice -->|lumina logout| CheckLogoutToken{Token File Exists?}
+    CheckLogoutToken -->|No| NotLoggedIn[Output: You're not logged in]
+    CheckLogoutToken -->|Yes| ConfirmLogout[Prompt: Are you sure you want to logout?]
+    ConfirmLogout -->|No| CancelLogout[Cancel & Exit 0]
+    ConfirmLogout -->|Yes| DeleteToken[Delete ~/.better-auth/token.json]
+    DeleteToken --> LogoutDone([Output: Successfully logged out!])
+```
+
+---
+
+### 4. Database Entity Relationship Diagram (ERD)
+
+The complete Prisma relational model for users, sessions, accounts, verifications, and device authorization codes.
+
+```mermaid
+erDiagram
+    USER ||--o{ SESSION : "has many"
+    USER ||--o{ ACCOUNT : "has many"
+
+    USER {
+        string id PK
+        string name
+        string email UK
+        boolean emailVerified
+        string image
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    SESSION {
+        string id PK
+        datetime expiresAt
+        string token UK
+        datetime createdAt
+        datetime updatedAt
+        string ipAddress
+        string userAgent
+        string userId FK
+    }
+
+    ACCOUNT {
+        string id PK
+        string accountId
+        string providerId
+        string userId FK
+        string accessToken
+        string refreshToken
+        string idToken
+        datetime accessTokenExpiresAt
+        datetime refreshTokenExpiresAt
+        string scope
+        string password
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    VERIFICATION {
+        string id PK
+        string identifier
+        string value
+        datetime expiresAt
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    DEVICE_CODE {
+        string id PK
+        string deviceCode
+        string userCode
+        string userId
+        datetime expiresAt
+        string status
+        datetime lastPolledAt
+        int pollingInterval
+        string clientId
+        string scope
+    }
+
+    TEST {
+        string id PK
+        string name
+        datetime createdAt
+    }
+```
+
+---
+
+## 🏗️ Monorepo Structure & File Map
 
 ```text
 lumina/
-├── client/                             # Next.js 16 Frontend Web Application
-│   ├── app/                            # Next.js App Router (Pages, Layouts & Sub-routes)
-│   │   ├── (auth)/                     # Auth Route Group (sign-in layout & page)
-│   │   ├── globals.css                 # Design System Tokens & Tailwind CSS Imports
-│   │   ├── layout.tsx                  # Root App Layout (ThemeProvider & Toaster)
-│   │   └── page.tsx                    # Protected Dashboard (Session Info & Logout)
+├── client/                             # Next.js 16 Frontend Web Application (Port 3000)
+│   ├── app/                            # Next.js App Router
+│   │   ├── (auth)/                     # Auth Route Group
+│   │   │   └── sign-in/page.tsx        # GitHub Social Sign-In Page & callbackUrl Handler
+│   │   ├── approve/page.tsx            # Device Authorization Review & Approval Page
+│   │   ├── device/page.tsx             # Device Code Entry Page & Automatic Forwarder
+│   │   ├── globals.css                 # CSS Design System Tokens & Utility Classes
+│   │   ├── layout.tsx                  # Root Layout (ThemeProvider, Base-UI & Sonner Toasters)
+│   │   └── page.tsx                    # Protected Dashboard Page
 │   ├── components/                     # Reusable UI Components
-│   │   ├── login-form.tsx              # GitHub Login Button Component
-│   │   ├── theme-provider.tsx          # React 19 compatible NextThemes Provider
-│   │   └── ui/                         # Shadcn UI Primitives (Button, Card, Form, Toast, etc.)
-│   ├── lib/                            # Frontend Utility Functions & Auth Client
-│   │   ├── auth-client.ts              # Better Auth React Client Instance (`better-auth/react`)
-│   │   └── utils.ts                    # Classname Merger (`clsx` + `tailwind-merge`)
-│   └── package.json
+│   │   ├── login-form.tsx              # GitHub Login Component
+│   │   ├── theme-provider.tsx          # NextThemes Provider Configuration
+│   │   └── ui/                         # Shadcn UI Components (Button, Card, Spinner, Toast, etc.)
+│   ├── lib/                            # Frontend Utilities & Auth Client
+│   │   ├── auth-client.ts              # Better Auth React Client (`better-auth/react`)
+│   │   └── utils.ts                    # Class Merger (`clsx` + `tailwind-merge`)
+│   └── package.json                    # Client Dependencies (`sonner`, `@base-ui/react`, Next 16)
 │
-├── server/                             # Express 5 Backend API Server
-│   ├── prisma/                         # Prisma Database Setup & Schemas
-│   │   ├── migrations/                 # Migration SQL Files
-│   │   └── schema.prisma               # Prisma Data Models (User, Session, Account, etc.)
+├── server/                             # Express 5 Backend API Server & CLI Package (Port 3005)
+│   ├── prisma/                         # Prisma Database Setup
+│   │   └── schema.prisma               # Relational Schema Specification
 │   ├── src/
-│   │   ├── lib/                        # Server Libraries & Configs
-│   │   │   ├── auth.js                 # Better Auth Server Configuration & Device Flow Plugin
-│   │   │   └── db.js                   # Prisma Client Singleton Instance
-│   │   └── index.js                    # Express Application Entry Point & Routes
-│   ├── .env                            # Backend Environment Variables
-│   ├── prisma.config.js                # Prisma Configuration Setup
-│   └── package.json                    # Server Dependencies & Scripts
+│   │   ├── cli/                        # Lumina CLI Implementation
+│   │   │   ├── commands/auth/login.js  # CLI login, logout, & whoami Action Handlers
+│   │   │   └── main.js                 # CLI Binary Entry Point, ASCII Figlet & Commander Setup
+│   │   ├── lib/                        # Server Shared Libraries
+│   │   │   ├── auth.js                 # Better Auth Express Instance & Device Authorization Plugin
+│   │   │   ├── db.js                   # Prisma Client & PostgreSQL Connection Pool Instance
+│   │   │   └── token.js                # Token File Utilities (~/.better-auth/token.json)
+│   │   └── index.js                    # Express Application Entry Point (/api/auth/*, /api/me)
+│   ├── .env                            # Backend Server Environment Variables
+│   └── package.json                    # Server Dependencies & Binary Bin Script (`lumina`)
 │
-└── README.md                           # Master Project Documentation
+└── README.md                           # Master Architecture Documentation
 ```
 
 ---
@@ -176,56 +342,55 @@ lumina/
 ### Frontend (`client/`)
 | Technology | Version | Purpose |
 | :--- | :--- | :--- |
-| **Next.js** | `16.3.0` | React Framework (App Router with Turbopack) |
-| **React** | `19.2.8` | UI Library & DOM Reconciler |
-| **Tailwind CSS** | `4.x` | Utility-first CSS Styling System |
-| **Better Auth Client** | `1.6.27` | React Auth Hooks & Client State (`better-auth/react`) |
-| **next-themes** | `0.4.6` | Hydration-safe Dark/Light Theme Switching |
+| **Next.js** | `16.3.0` | App Router React Framework |
+| **React** | `19.2.8` | UI Rendering Engine |
+| **Tailwind CSS** | `4.x` | Utility-First Styling Framework |
+| **Sonner** | `2.0.8` | Toast Notification System |
+| **Better Auth Client** | `1.6.27` | React Auth Hooks (`better-auth/react`) |
+| **Lucide React** | `1.29.0` | Vector UI Icons |
 
-### Backend (`server/`)
+### Backend & CLI (`server/`)
 | Technology | Version | Purpose |
 | :--- | :--- | :--- |
 | **Node.js** | `>= 18.x` | JavaScript Runtime (ES Modules) |
 | **Express** | `5.2.1` | HTTP Server & Web API Routing |
-| **Better Auth Server** | `1.6.27` | Auth Engine, OAuth Handlers & Device Flow Plugin |
-| **Prisma ORM** | `7.9.1` | Database ORM, Migrations & Client Generator |
-| **PostgreSQL** | `Neon DB` | Cloud Serverless Relational Database |
+| **Better Auth Server** | `1.6.27` | Auth Engine & Device Authorization Plugin |
+| **Prisma ORM** | `7.9.1` | Database ORM & Migrations |
+| **PostgreSQL** | `Neon DB` | Cloud Serverless Database |
+| **Commander.js** | `15.0.0` | CLI Command Router |
+| **Clack Prompts** | `1.7.0` | Interactive CLI Prompts & Confirmations |
+| **Chalk & Figlet** | Latest | ASCII Banners & Colored Output |
 
 ---
 
-## 🔐 Authentication Architecture
+## 🔐 Authentication System Details
 
-### 1. GitHub OAuth Social Authentication
+### 1. GitHub Social OAuth 2.0
+- Initiated via `authClient.signIn.social({ provider: "github", callbackURL: targetCallback })`.
+- Better Auth handles OAuth authorization exchange with GitHub API.
+- Automatically generates and stores user session records in PostgreSQL `session` table and issues HttpOnly session cookies.
 
-```text
-[ User Browser ]                  [ Next.js Client ]                [ Express Server ]              [ GitHub OAuth ]
-       |                                  |                                 |                               |
-       |--- Click "Continue with GitHub" ->|                                 |                               |
-       |                                  |--- POST /api/auth/sign-in/social ->|                               |
-       |                                  |    (provider: "github")         |                               |
-       |                                  |                                 |--- Redirect to GitHub ------->|
-       |<--------------------------------- Redirect User to GitHub Auth Page -------------------------------|
-       |                                                                                                    |
-       |--- User Approves App Permissions ----------------------------------------------------------------->|
-       |                                                                                                    |
-       |<--------------------------------- Redirect back to /api/auth/callback/github ----------------------|
-       |                                                                                                    |
-       |                                                                    |--- Exchange Code & Create Session -->
-       |                                                                    |--- Store Session in PostgreSQL --->
-       |<--------------------------------- Set HttpOnly Cookie & Redirect to / ----------------------------|
-```
-
-### 2. CLI Device Authorization Flow
-Configured in `server/src/lib/auth.js` with the `deviceAuthorization` plugin:
-- **Device Code Expiration**: 30 Minutes (`expiresIn: "30m"`)
-- **Polling Interval**: 5 Seconds (`interval: "5s"`)
-- **Device Table**: Stored in PostgreSQL `deviceCode` model for CLI token verification.
+### 2. OAuth Device Authorization (RFC 8628)
+- Configured in `server/src/lib/auth.js`:
+  ```javascript
+  plugins: [
+    deviceAuthorization({ 
+      verificationUri: "http://localhost:3000/device", 
+    }), 
+  ]
+  ```
+- Exposes device endpoints:
+  - `POST /api/auth/device/code`: Generates `user_code` (e.g. `ZBVDU99D`) and `device_code`.
+  - `GET /api/auth/device?user_code=...`: Verifies code and **claims `userId`** for active session.
+  - `POST /api/auth/device/approve`: Sets status to `"approved"`.
+  - `POST /api/auth/device/deny`: Sets status to `"denied"`.
+  - `POST /api/auth/device/token`: Polls status and returns access token upon approval.
 
 ---
 
-## 🗄️ Database Schema & Models
+## 🗄️ Database Schema Specification
 
-The PostgreSQL database schema is defined in [schema.prisma](file:///d:/lumina/server/prisma/schema.prisma):
+Below is the complete database model defined in [`server/prisma/schema.prisma`](file:///d:/lumina/server/prisma/schema.prisma):
 
 ```prisma
 datasource db {
@@ -312,12 +477,33 @@ model DeviceCode {
 
   @@map("deviceCode")
 }
+```
 
-model Test {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-}
+---
+
+## 💻 CLI Commands Reference
+
+You can run `lumina` commands from any directory terminal once linked (`npm link` inside `server/`).
+
+### 1. `lumina login`
+Initiates device authorization flow, displays user code, opens browser, and polls for token authorization.
+```bash
+lumina login
+```
+Options:
+- `--server-url <url>`: Specify custom backend auth server (default: `http://localhost:3005`).
+- `--client-id <id>`: Specify custom OAuth client ID.
+
+### 2. `lumina whoami`
+Displays current authenticated user details (Name, Email, ID). Works smoothly when logged in or logged out.
+```bash
+lumina whoami
+```
+
+### 3. `lumina logout`
+Prompts confirmation and clears local credentials from `~/.better-auth/token.json`.
+```bash
+lumina logout
 ```
 
 ---
@@ -327,12 +513,11 @@ model Test {
 Create a `.env` file in the `server/` directory (`server/.env`):
 
 ```env
-# Server Port
 PORT=3005
 
-# PostgreSQL Database Connection Strings (Neon DB)
-DATABASE_URL="postgresql://neondb_owner:<password>@<host>/neondb?sslmode=require&channel_binding=require"
-DIRECT_URL="postgresql://neondb_owner:<password>@<host>/neondb?sslmode=require"
+# PostgreSQL Database Connection Strings (Neon DB with verify-full SSL mode)
+DATABASE_URL="postgresql://neondb_owner:<password>@<host>/neondb?sslmode=verify-full&channel_binding=require"
+DIRECT_URL="postgresql://neondb_owner:<password>@<host>/neondb?sslmode=verify-full"
 
 # Better Auth Secret & Public URL
 BETTER_AUTH_SECRET=your_generated_secret_key_here
@@ -345,47 +530,39 @@ GITHUB_CLIENT_SECRET=your_github_client_secret
 
 ---
 
-## 🛠️ Database Setup & Migrations
+## 🛠️ Setup & Running Locally
 
-To set up the database:
+### 1. Install Monorepo Dependencies
+```bash
+cd server && npm install
+cd ../client && npm install
+```
 
-1. **Navigate to the server directory:**
-   ```bash
-   cd server
-   ```
+### 2. Link CLI Binary (Global Command)
+```bash
+cd server
+npm link
+```
 
-2. **Generate the Prisma Client:**
-   ```bash
-   npx prisma generate
-   ```
+### 3. Push Database Schema
+```bash
+cd server
+npx prisma db push
+```
 
-3. **Push Schema Models to Database (Neon PostgreSQL):**
-   ```bash
-   npx prisma db push
-   ```
-
-4. *(Optional)* Regenerate Better Auth schema models if updating plugins:
-   ```bash
-   npx @better-auth/cli generate --config ./src/lib/auth.js
-   ```
-
----
-
-## 🚀 Running the Application
-
-### 1. Launch the Backend API Server
+### 4. Start Backend Server
 ```bash
 cd server
 npm run dev
 ```
-*Server will listen at `http://localhost:3005`.*
+*Listens at `http://localhost:3005`.*
 
-### 2. Launch the Next.js Client
+### 5. Start Next.js Frontend
 ```bash
 cd client
 npm run dev
 ```
-*Client will listen at `http://localhost:3000`.*
+*Listens at `http://localhost:3000`.*
 
 ---
 
@@ -393,32 +570,46 @@ npm run dev
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `GET` | `/health` | Server Health Check (`OK`) |
-| `GET` | `/api/me` | Fetch Current Authenticated User Session |
-| `POST` | `/api/auth/sign-in/social` | Initiate OAuth Flow (`{ provider: "github", callbackURL: "http://localhost:3000" }`) |
-| `GET` | `/api/auth/callback/github` | Better Auth OAuth Callback Endpoint |
-| `POST` | `/api/auth/sign-out` | Destroy Session & Revoke Auth Cookies |
-| `ALL` | `/api/auth/*` | Better Auth Express Request Handler |
+| `GET` | `/health` | Server health check (`OK`) |
+| `GET` | `/api/me` | Fetch active user session |
+| `POST` | `/api/auth/sign-in/social` | Initiate OAuth flow (`github`) |
+| `GET` | `/api/auth/device?user_code=...` | Verify & claim device authorization code |
+| `POST` | `/api/auth/device/approve` | Approve device code authorization |
+| `POST` | `/api/auth/device/deny` | Deny device code authorization |
+| `POST` | `/api/auth/device/token` | Poll device token issuance |
+| `ALL` | `/api/auth/*` | Better Auth endpoint handler |
 
 ---
 
-## 🐛 Common Issues & Troubleshooting
+## 🐛 Solved Edge Cases & Troubleshooting Guide
 
-### 1. `Cannot find name 'ThemeProvider'`
-- **Fix**: Ensure `ThemeProvider` is imported from `@/components/theme-provider` inside `app/layout.tsx`.
+### 1. `Cannot find module 'sonner'`
+- **Fix**: Installed `sonner` package in `client/` and rendered `<SonnerToaster richColors />` inside `app/layout.tsx`.
 
-### 2. `Encountered a script tag while rendering React component`
-- **Fix**: In React 19 / Next.js 16, pass `scriptProps={{ async: true }}` to `<NextThemesProvider>` inside `components/theme-provider.tsx` and place `<ThemeProvider>` inside `<body>` in `app/layout.tsx`.
+### 2. Device Code Not Claimed Error on Approval
+- **Fix**: Better Auth requires calling `GET /api/auth/device?user_code=...` prior to `POST /api/auth/device/approve` so the session binds `userId` to `DeviceCode`. `app/approve/page.tsx` now calls this check automatically on mount.
 
-### 3. `Model verification does not exist in the database`
-- **Fix**: Run `npx @better-auth/cli generate` followed by `npx prisma db push` and `npx prisma generate` in the `server` directory to update Prisma models.
+### 3. `ReferenceError: clearStoredToken is not defined`
+- **Fix**: Imported `clearStoredToken` and `requireAuth` in `server/src/cli/commands/auth/login.js` from `../../../lib/token.js`.
+
+### 4. `ReferenceError: z is not defined`
+- **Fix**: Imported `z` from `"zod"` in `server/src/cli/commands/auth/login.js`.
+
+### 5. Slow CLI Terminal Response (~5 Seconds)
+- **Fix**: Added `signal: AbortSignal.timeout(500)` to API fetches and explicit `process.exit(0)` to close Prisma background database socket connections instantly.
+
+### 6. Command Execution Outside Server Folder (`.env` not found)
+- **Fix**: Updated `db.js`, `main.js`, and `login.js` to resolve `.env` path using `path.resolve(__dirname, "../../.env")` relative to script file locations.
+
+### 7. PostgreSQL SSL Deprecation Warning
+- **Fix**: Updated `DATABASE_URL` and `DIRECT_URL` in `server/.env` to use `sslmode=verify-full`.
 
 ---
 
-## 👨‍💻 Author & Vision
+## 👨‍💻 Author & License
 
 **Piyush Kumar**  
 B.Tech Student @ IIITDM Jabalpur  
 GitHub: [@piyushkumariiitj](https://github.com/piyushkumariiitj)
 
-> *LuminaCLI represents the future of developer tooling where AI agents move beyond answering questions and actively collaborate with developers to build software.*
+Distributed under the [MIT License](LICENSE).
