@@ -14,7 +14,7 @@ export const auth = betterAuth({
   trustedOrigins: ["http://localhost:3000"],
  plugins: [
     deviceAuthorization({ 
-      verificationUri: "/device", 
+      verificationUri: "http://localhost:3000/device", 
     }), 
   ],
   socialProviders: {

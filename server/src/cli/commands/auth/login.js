@@ -12,11 +12,16 @@ import path from "path";
 import yoctoSpinner from "yocto-spinner";
 
 import { z } from "zod";
+import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import prisma from "../../../lib/db.js";
-import { CONFIG_DIR, TOKEN_FILE, getStoredToken, isTokenExpired, storeToken } from "../../../lib/token.js";
+import { CONFIG_DIR, TOKEN_FILE, getStoredToken, isTokenExpired, storeToken, clearStoredToken, requireAuth } from "../../../lib/token.js";
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const envPath = path.resolve(__dirname, "../../../.env");
+
+dotenv.config({ path: envPath, quiet: true });
 
 const URL = process.env.BETTER_AUTH_URL || "http://localhost:3005";
 const CLIENT_ID = process.env.GITHUB_CLIENT_ID || "Ov23lic0GmWqY0cYavso";
@@ -143,18 +148,25 @@ export async function loginAction(opts) {
             }
 
             // Get user info
-            // const { data: session } = await authClient.getSession({
-            //     fetchOptions: {
-            //         headers: {
-            //             Authorization: `Bearer ${token.access_token}`,
-            //         },
-            //     },
-            // });
+            let userDisplayName = "User";
+            try {
+                const { data: session } = await authClient.getSession({
+                    fetchOptions: {
+                        headers: {
+                            Authorization: `Bearer ${token.access_token}`,
+                        },
+                    },
+                });
+                if (session?.user) {
+                    userDisplayName = session.user.name || session.user.email || "User";
+                }
+            } catch {
+                // Fallback if session fetch fails
+            }
 
             outro(
                 chalk.green(
-                    `✅ Login successful! Welcome ${session?.user?.name || session?.user?.email || "User"
-                    }`
+                    `✅ Login successful! Welcome ${userDisplayName}`
                 )
             );
 
@@ -240,7 +252,124 @@ async function pollForToken(authClient, device_code, clientId, initialInterval =
         setTimeout(poll, pollingInterval * 1000);
     });
 }
+// ============================================
+// LOGOUT COMMAND
+// ============================================
 
+export async function logoutAction() {
+    intro(chalk.bold("👋 Logout"));
+
+    const token = await getStoredToken();
+
+    if (!token) {
+        console.log(chalk.yellow("You're not logged in."));
+        process.exit(0);
+    }
+
+    const shouldLogout = await confirm({
+        message: "Are you sure you want to logout?",
+        initialValue: false,
+    });
+
+    if (isCancel(shouldLogout) || !shouldLogout) {
+        cancel("Logout cancelled");
+        process.exit(0);
+    }
+
+    const cleared = await clearStoredToken();
+
+    if (cleared) {
+        outro(chalk.green("✅ Successfully logged out!"));
+    } else {
+        console.log(chalk.yellow("⚠️  Could not clear token file."));
+    }
+}
+
+// ============================================
+// WHOAMI COMMAND
+// ============================================
+
+export async function whoamiAction(opts) {
+    const token = await getStoredToken();
+    const expired = await isTokenExpired();
+
+    if (!token || !token.access_token || expired) {
+        console.log(chalk.yellow("\n💡 You are currently logged out."));
+        console.log(chalk.gray("   Run: lumina login to sign in.\n"));
+        process.exit(0);
+    }
+
+    let user = null;
+
+    // 1. Try to fetch session from Auth Server via HTTP API (fast 500ms timeout)
+    try {
+        const serverUrl = opts?.serverUrl || URL;
+        let response = await fetch(`${serverUrl}/api/me`, {
+            headers: {
+                Authorization: `Bearer ${token.access_token}`,
+                Cookie: `better-auth.session_token=${token.access_token}`
+            },
+            signal: AbortSignal.timeout(500)
+        });
+        if (!response.ok) {
+            response = await fetch(`${serverUrl}/api/auth/get-session`, {
+                headers: {
+                    Authorization: `Bearer ${token.access_token}`,
+                    Cookie: `better-auth.session_token=${token.access_token}`
+                },
+                signal: AbortSignal.timeout(500)
+            });
+        }
+        if (response.ok) {
+            const data = await response.json();
+            if (data?.user) {
+                user = data.user;
+            }
+        }
+    } catch {
+        // Fast fallback if server is offline
+    }
+
+    // 2. Fallback to direct Prisma query if HTTP API didn't return user
+    if (!user) {
+        try {
+            user = await prisma.user.findFirst({
+                where: {
+                    sessions: {
+                        some: {
+                            token: token.access_token,
+                        },
+                    },
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    image: true,
+                },
+            });
+        } catch (dbErr) {
+            console.log(chalk.red("\n❌ Could not connect to backend server or database."));
+            console.log(chalk.yellow("   Make sure your backend server (port 3005) and PostgreSQL database are running.\n"));
+            process.exit(1);
+        }
+    }
+
+    if (!user) {
+        console.log(chalk.yellow("\n💡 You are currently logged out (session invalid or expired)."));
+        console.log(chalk.gray("   Run: lumina login to sign in.\n"));
+        process.exit(0);
+    }
+
+    // Output user session info
+    console.log(
+        chalk.bold.magentaBright(`\n👤 User: ${user.name || "N/A"}
+📧 Email: ${user.email}
+👤 ID: ${user.id}\n`)
+    );
+
+    process.exit(0);
+}
 
 
 // COMMANDER SETUP
@@ -251,3 +380,11 @@ export const login = new Command("login")
     .option("--server-url <url>", "Server URL", URL)
     .option("--client-id <id>", "The OAuth client ID", CLIENT_ID)
     .action(loginAction);
+export const logout = new Command("logout")
+    .description("Logout and clear stored credentials")
+    .action(logoutAction);
+
+export const whoami = new Command("whoami")
+    .description("Show current authenticated user")
+    .option("--server-url <url>", "The Better Auth server URL", URL)
+    .action(whoamiAction);
