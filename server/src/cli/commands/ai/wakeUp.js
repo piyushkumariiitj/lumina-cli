@@ -31,19 +31,50 @@ const wakeUpAction = async () => {
   const spinner = yoctoSpinner({ text: "Fetching User Information..." });
   spinner.start();
 
-  const user = await prisma.user.findFirst({
-    where: {
-      sessions: {
-        some: { token: token.access_token },
+  let user = null;
+
+  // 1. Fast-path: Try HTTP API first with 500ms timeout
+  try {
+    const response = await fetch(`${URL}/api/me`, {
+      headers: {
+        Authorization: `Bearer ${token.access_token}`,
+        Cookie: `better-auth.session_token=${token.access_token}`
       },
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      image: true,
-    },
-  });
+      signal: AbortSignal.timeout(500)
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data?.user) {
+        user = data.user;
+      }
+    }
+  } catch {
+    // API server offline or fast timeout, fallback to Prisma DB query
+  }
+
+  // 2. Fallback: Query Prisma Database with graceful error catching
+  if (!user) {
+    try {
+      user = await prisma.user.findFirst({
+        where: {
+          sessions: {
+            some: { token: token.access_token },
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+        },
+      });
+    } catch (dbErr) {
+      spinner.stop();
+      console.log(chalk.red("\n❌ Could not connect to backend server or database."));
+      console.log(chalk.yellow("   Make sure your backend server or internet database connection is active.\n"));
+      return;
+    }
+  }
 
   spinner.stop();
 

@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  TypeScript • Node.js • Gemini AI (gemini-3.7-flash) • Vercel AI SDK • Next.js 16 • React 19 • Express.js 5 • Better Auth • Prisma ORM • PostgreSQL (Neon DB) • Tailwind CSS
+  TypeScript • Node.js • Gemini AI (gemini-2.5-flash) • Vercel AI SDK • Next.js 16 • React 19 • Express.js 5 • Better Auth • Prisma ORM • PostgreSQL (Neon DB) • Tailwind CSS
 </p>
 
 ---
@@ -55,7 +55,7 @@ It pairs a terminal-based CLI binary agent (`lumina` / `orbitals`) with a full-s
 ## 🎯 Core Goals
 
 - **Terminal-First Pair Programmer**: Analyze, debug, and edit code directly inside your terminal window.
-- **Google Gemini 3.7 Powered Intelligence**: Utilize `gemini-3.7-flash` for ultra-fast, high-reasoning code generation and text streaming.
+- **Google Gemini 3.7 Powered Intelligence**: Utilize `gemini-2.5-flash` for ultra-fast, high-reasoning code generation and text streaming.
 - **Database-Backed Conversation Memory**: Automatically persist chat sessions, titles, and message histories per user across sessions.
 - **Multi-Mode Execution**: Support standard Chat, Tool Calling (search & code execution), and Agentic workflow modes.
 - **Enterprise-Grade Security**: Secure CLI device authentication using standard OAuth 2.0 Device Code Authorization (RFC 8628).
@@ -92,7 +92,7 @@ dotenv.config();
 
 export const config = {
   googleApiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GOOGLE_API_KEY || '',
-  model: process.env.LUMINA_MODEL || 'gemini-3.7-flash',
+  model: process.env.LUMINA_MODEL || 'gemini-2.5-flash',
 };
 ```
 
@@ -174,7 +174,7 @@ graph TD
     end
 
     subgraph ExternalCloud ["Google AI Cloud"]
-        GeminiAPI["Google Gemini 3.7 API (gemini-3.7-flash)"]
+        GeminiAPI["Google Gemini 3.7 API (gemini-2.5-flash)"]
     end
 
     subgraph Server ["Express 5 Backend Server (Port 3005)"]
@@ -290,7 +290,7 @@ sequenceDiagram
         ChatSvc-->>ChatEngine: Returns formatted message history array
         
         ChatEngine->>AISvc: sendMessage(messages, onChunkCallback)
-        AISvc->>Gemini: POST streamText (model: gemini-3.7-flash, system, messages)
+        AISvc->>Gemini: POST streamText (model: gemini-2.5-flash, system, messages)
         
         loop SSE Text Stream
             Gemini-->>AISvc: Yields text stream chunk
@@ -524,7 +524,7 @@ lumina/
 | Technology | Version | Purpose |
 | :--- | :--- | :--- |
 | **Node.js** | `>= 18.x` | JavaScript Runtime (ES Modules) |
-| **Google Gemini AI** | `@ai-sdk/google` | Generative AI Provider (`gemini-3.7-flash`) |
+| **Google Gemini AI** | `@ai-sdk/google` | Generative AI Provider (`gemini-2.5-flash`) |
 | **Vercel AI SDK** | `ai` | AI Text Streaming & Structured Object Generation |
 | **Marked & Terminal** | `15.x` / `7.x` | Terminal ANSI Markdown Rendering |
 | **Express** | `5.2.1` | HTTP Server & Web API Routing |
@@ -735,7 +735,7 @@ GITHUB_CLIENT_SECRET=your_github_client_secret
 
 # Google Gemini AI Config
 GOOGLE_GENERATIVE_AI_API_KEY=your_google_ai_api_key_here
-LUMINA_MODEL=gemini-3.7-flash
+LUMINA_MODEL=gemini-2.5-flash
 ```
 
 ---
@@ -797,7 +797,7 @@ npm run dev
 - **Fix**: Added back-relation `conversations Conversation[]` array to `User` model to match `user User @relation(fields: [userId], references: [id], onDelete: Cascade)` in `Conversation`.
 
 ### 2. Google AI Model 404 Deprecation Error
-- **Fix**: Google AI Studio retired legacy endpoints (`gemini-2.5-flash` / `gemini-2.0-flash`). Updated model identifier to **`gemini-3.7-flash`** across environment variables and config fallbacks.
+- **Fix**: Google AI Studio retired legacy endpoints (`gemini-2.5-flash` / `gemini-2.0-flash`). Updated model identifier to **`gemini-2.5-flash`** across environment variables and config fallbacks.
 
 ### 3. Missing `marked` Module in Terminal Chat
 - **Fix**: Installed `marked` package alongside `marked-terminal` in `server/package.json` for rich ANSI code blocks and Markdown formatting.
