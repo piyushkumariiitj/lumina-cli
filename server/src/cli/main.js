@@ -6,6 +6,7 @@ import chalk from "chalk";
 import figlet from "figlet";
 import { Command } from "commander";
 import { login, logout, whoami } from "./commands/auth/login.js";
+import { wakeUp } from "./commands/ai/wakeUp.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,7 +34,8 @@ async function main() {
     .description("Lumina CLI- An AI Powered Software Engineering Agent")
     .addCommand(login)
     .addCommand(logout)
-    .addCommand(whoami);
+    .addCommand(whoami)
+    .addCommand(wakeUp);
 
   // default action show help
   program.action(() => {
