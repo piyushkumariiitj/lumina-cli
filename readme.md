@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  TypeScript • Node.js • Gemini AI (gemini-2.5-flash) • Vercel AI SDK • Next.js 16 • React 19 • Express.js 5 • Better Auth • Prisma ORM • PostgreSQL (Neon DB) • Tailwind CSS
+  TypeScript • Node.js • Gemini AI (gemini-3.7-flash) • Vercel AI SDK • Next.js 16 • React 19 • Express.js 5 • Better Auth • Prisma ORM • PostgreSQL (Neon DB) • Tailwind CSS
 </p>
 
 ---
@@ -15,12 +15,13 @@
 - [🚀 Overview](#-overview)
 - [🎯 Core Goals](#-core-goals)
 - [✨ Features & Agent Capabilities](#-features--agent-capabilities)
-- [🤖 Google Gemini AI Engine Architecture](#-google-gemini-ai-engine-architecture)
+- [🤖 Google Gemini 3.7 AI Engine & Persistent Chat Architecture](#-google-gemini-37-ai-engine--persistent-chat-architecture)
 - [📊 Comprehensive Visual Architecture (Mermaid Flowcharts & Graphs)](#-comprehensive-visual-architecture-mermaid-flowcharts--graphs)
   - [1. Monorepo System Topology](#1-monorepo-system-topology)
   - [2. End-to-End CLI Device Authorization Sequence](#2-end-to-end-cli-device-authorization-sequence)
-  - [3. CLI Auth Commands Decision Tree](#3-cli-auth-commands-decision-tree)
-  - [4. Database Entity Relationship Diagram (ERD)](#4-database-entity-relationship-diagram-erd)
+  - [3. Interactive AI Chat & Memory Streaming Sequence](#3-interactive-ai-chat--memory-streaming-sequence)
+  - [4. CLI Command Execution Flowchart](#4-cli-command-execution-flowchart)
+  - [5. Database Entity Relationship Diagram (ERD)](#5-database-entity-relationship-diagram-erd)
 - [🏗️ Monorepo Structure & File Map](#️-monorepo-structure--file-map)
 - [🛠️ Technology Stack](#️-technology-stack)
 - [🔐 Authentication System Details](#-authentication-system-details)
@@ -36,53 +37,53 @@
 
 ## 🚀 Overview
 
-**LuminaCLI** is an AI-powered command-line software engineering agent designed to act as an autonomous developer assistant. Powered by **Google Gemini 2.5 Flash** (`@ai-sdk/google`) and Vercel AI SDK (`ai`), LuminaCLI can:
+**LuminaCLI** is an AI-powered command-line software engineering agent designed to act as an autonomous pair programmer. Powered by **Google Gemini 3.7 Flash** (`@ai-sdk/google`) and the Vercel AI SDK (`ai`), LuminaCLI can:
 
-- Understand complex multi-file development tasks
-- Plan technical implementations autonomously
-- Create, modify, and refactor codebase files
-- Stream responses in real-time using `streamText`
-- Execute shell & terminal development commands
-- Perform online web search and documentation lookups
-- Maintain persistent conversation memory
-- Authenticate securely via GitHub OAuth 2.0 and OAuth Device Authorization Flow
+- Understand complex multi-file codebase contexts
+- Conduct interactive, persistent multi-turn chat sessions (`lumina wakeup`)
+- Stream real-time terminal responses formatted in rich ANSI Markdown (`marked` & `marked-terminal`)
+- Store full chat session history and messages in PostgreSQL (`Conversation` & `Message` models)
+- Plan technical implementations autonomously (`Plan` -> `Execute` -> `Test` -> `Verify`)
+- Execute shell & terminal development commands safely
+- Perform online web searches and documentation lookups
+- Authenticate securely via GitHub OAuth 2.0 and OAuth Device Authorization Flow (RFC 8628)
 
-It pairs a terminal-based CLI binary agent (`lumina`) with a full-stack web application featuring an **Express 5** backend server (powered by **Better Auth** and **Prisma ORM** over PostgreSQL) and a modern **Next.js 16** frontend dashboard (utilizing **React 19**, **Tailwind CSS**, **Sonner**, and **Shadcn UI**).
+It pairs a terminal-based CLI binary agent (`lumina` / `orbitals`) with a full-stack web application featuring an **Express 5** backend server (powered by **Better Auth** and **Prisma ORM** over PostgreSQL) and a modern **Next.js 16** frontend dashboard (utilizing **React 19**, **Tailwind CSS**, **Sonner**, and **Shadcn UI**).
 
 ---
 
 ## 🎯 Core Goals
 
-- **Terminal-First AI Pair Programmer**: Enable developers to analyze and modify code directly inside their command prompt.
-- **Google Gemini-Powered Intelligence**: Leverage `gemini-2.5-flash` with Vercel AI SDK for ultra-fast, high-reasoning code generation and streaming responses.
-- **Autonomous Task Execution**: Follow structured planning workflows (`Plan` -> `Execute` -> `Test` -> `Verify`).
-- **Context-Aware Memory**: Retain codebase awareness across commands and developer sessions.
-- **Enterprise-Grade Security**: Secure CLI authentication using standard OAuth 2.0 Device Code Authorization (RFC 8628).
+- **Terminal-First Pair Programmer**: Analyze, debug, and edit code directly inside your terminal window.
+- **Google Gemini 3.7 Powered Intelligence**: Utilize `gemini-3.7-flash` for ultra-fast, high-reasoning code generation and text streaming.
+- **Database-Backed Conversation Memory**: Automatically persist chat sessions, titles, and message histories per user across sessions.
+- **Multi-Mode Execution**: Support standard Chat, Tool Calling (search & code execution), and Agentic workflow modes.
+- **Enterprise-Grade Security**: Secure CLI device authentication using standard OAuth 2.0 Device Code Authorization (RFC 8628).
 
 ---
 
 ## ✨ Features & Agent Capabilities
 
-### 🤖 1. Interactive Terminal Assistant & Gemini AI Service
-Command-line assistant powered by `AIService` (`server/src/cli/ai/google-service.js`) with support for text streaming (`sendMessage`), non-streaming responses (`getMessage`), and structured schema generation (`generateObject`).
+### 🤖 1. Interactive AI Assistant (`lumina wakeup`)
+Command-line assistant powered by `AIService` (`server/src/cli/ai/google-service.js`) and `ChatService` (`server/src/services/chat-services.js`). Features interactive mode selection (`Chat`, `Tool Calling`, `Agentic Mode`), streaming text generation, and automatic ANSI terminal markdown rendering.
 
-### 🧠 2. Autonomous Agent Planning
-Deconstructs complex user prompts into step-by-step technical plans before executing code changes.
+### 🧠 2. Persistent Chat History & Conversation Storage
+Stores chat sessions in PostgreSQL. Automatically generates conversation titles from first messages, loads prior message context, and parses message objects.
 
-### 🔧 3. Intelligent Tool Execution
-Safely executes filesystem modifications, shell commands, code syntax validation, git operations, and web searches.
+### 🔧 3. Multi-Tool Calling Engine
+Integrates web searching, code execution, git operations, and local filesystem manipulation directly from AI context.
 
 ### 🔐 4. OAuth Device Authorization (RFC 8628)
-Enables headless terminal authentication via browser verification.
+Enables headless terminal authentication via browser code verification (`/device` -> `/approve`).
 
-### ⚡ 5. Resilient Resilience Engine
-Features fast-path API session queries, abort timeouts, and automatic fallback database lookups.
+### ⚡ 5. Fail-Fast & Quiet Environment Loading
+Features 500ms abort timeouts for offline servers, silent `dotenv` configuration, and clean error handling cards powered by `boxen`.
 
 ---
 
-## 🤖 Google Gemini AI Engine Architecture
+## 🤖 Google Gemini 3.7 AI Engine & Persistent Chat Architecture
 
-Lumina CLI uses the Vercel AI SDK (`ai`) and Google provider (`@ai-sdk/google`) configured in [`server/src/config/google.config.js`](file:///d:/lumina/server/src/config/google.config.js) and [`server/src/cli/ai/google-service.js`](file:///d:/lumina/server/src/cli/ai/google-service.js):
+Lumina CLI uses Vercel AI SDK (`ai`) and Google provider (`@ai-sdk/google`) configured in [`server/src/config/google.config.js`](file:///d:/lumina/server/src/config/google.config.js) and [`server/src/cli/ai/google-service.js`](file:///d:/lumina/server/src/cli/ai/google-service.js):
 
 ### 1. Configuration (`server/src/config/google.config.js`)
 ```javascript
@@ -90,16 +91,17 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export const config = {
-  googleApiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || '',
-  model: process.env.LUMINA_MODEL || 'gemini-2.5-flash',
+  googleApiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GOOGLE_API_KEY || '',
+  model: process.env.LUMINA_MODEL || 'gemini-3.7-flash',
 };
 ```
 
 ### 2. AI Service Implementation (`server/src/cli/ai/google-service.js`)
 ```javascript
 import { google } from "@ai-sdk/google";
-import { streamText, generateObject } from "ai";
+import { streamText } from "ai";
 import { config } from "../../config/google.config.js";
+import chalk from "chalk";
 
 export class AIService {
   constructor() {
@@ -113,31 +115,30 @@ export class AIService {
   }
 
   async sendMessage(messages, onChunk) {
-    const result = streamText({
-      model: this.model,
-      messages: messages
-    });
-    
-    let fullResponse = "";
-    for await (const chunk of result.textStream) {
-      fullResponse += chunk;
-      if (onChunk) onChunk(chunk);
+    try {
+      const streamConfig = {
+        model: this.model,
+        system: `You are Lumina CLI, an AI-powered Software Engineering Agent powered by Google Gemini (${config.model}). You help developers build, analyze, and debug software.`,
+        messages: messages
+      };
+
+      const result = streamText(streamConfig);
+      let fullResponse = "";
+      
+      for await (const chunk of result.textStream) {
+        fullResponse += chunk;
+        if (onChunk) onChunk(chunk);
+      }
+
+      const fullResult = await result;
+      return {
+        content: fullResponse,
+        finishReason: fullResult.finishReason,
+        usage: fullResult.usage,
+      };
+    } catch (error) {
+      throw error;
     }
-
-    const fullResult = await result;
-    return {
-      content: fullResponse,
-      finishReason: fullResult.finishReason,
-      usage: fullResult.usage,
-    };
-  }
-
-  async getMessage(messages) {
-    let fullResponse = "";
-    await this.sendMessage(messages, (chunk) => {
-      fullResponse += chunk;
-    });
-    return fullResponse;
   }
 }
 ```
@@ -148,51 +149,58 @@ export class AIService {
 
 ### 1. Monorepo System Topology
 
-The diagram below illustrates the relationship between the terminal CLI client, Gemini AI engine, Next.js web application, Express 5 backend server, and the cloud Neon PostgreSQL database.
+This diagram details the connection between the Lumina CLI terminal, AI streaming engine, persistent chat service layer, Next.js web application, Express 5 backend server, and Neon PostgreSQL cloud database.
 
 ```mermaid
 graph TD
-    subgraph Client ["Next.js 16 Frontend (Port 3000)"]
-        Dashboard["Dashboard (app/page.tsx)"]
+    subgraph Client ["Next.js 16 Web Dashboard (Port 3000)"]
+        Dashboard["Dashboard Page (app/page.tsx)"]
         SignIn["Sign-In Page (app/(auth)/sign-in/page.tsx)"]
-        DevicePage["Device Entry Page (app/device/page.tsx)"]
+        DevicePage["Device Code Entry Page (app/device/page.tsx)"]
         ApprovePage["Device Approval Page (app/approve/page.tsx)"]
         AuthReactClient["Better Auth React Client (lib/auth-client.ts)"]
-        Toasters["Sonner & Base-UI Toast Provider (app/layout.tsx)"]
+        Toasters["Sonner & Base-UI Toaster (app/layout.tsx)"]
     end
 
-    subgraph CLI ["Lumina CLI Engine"]
-        CLIMain["CLI Entry Point (bin/lumina | src/cli/main.js)"]
+    subgraph CLI ["Lumina CLI Engine (bin/lumina | bin/orbitals)"]
+        CLIMain["CLI Entry Point (src/cli/main.js)"]
         LoginCmd["lumina login"]
         WhoamiCmd["lumina whoami"]
         LogoutCmd["lumina logout"]
-        AIServiceModule["AI Engine (src/cli/ai/google-service.js)"]
-        TokenFile["Local Credentials (~/.better-auth/token.json)"]
+        WakeUpCmd["lumina wakeup"]
+        ChatModule["Interactive Terminal Chat (src/cli/chat/chat-with-ai.js)"]
+        AIServiceModule["Google AI Service (src/cli/ai/google-service.js)"]
+        TokenFile["Stored Token (~/.better-auth/token.json)"]
     end
 
-    subgraph ExternalServices ["External Cloud AI Services"]
-        GeminiAI["Google Gemini API (gemini-2.5-flash)"]
+    subgraph ExternalCloud ["Google AI Cloud"]
+        GeminiAPI["Google Gemini 3.7 API (gemini-3.7-flash)"]
     end
 
     subgraph Server ["Express 5 Backend Server (Port 3005)"]
-        ExpressApp["Express API Server (src/index.js)"]
+        ExpressApp["Express API Engine (src/index.js)"]
         AuthServer["Better Auth Server Engine (src/lib/auth.js)"]
-        DevicePlugin["Device Authorization Plugin"]
+        ChatServiceModule["Chat Service Layer (src/services/chat-services.js)"]
         PrismaInstance["Prisma Client Singleton (src/lib/db.js)"]
     end
 
-    subgraph Database ["Database Layer"]
+    subgraph Database ["Database Storage Layer"]
         PgDatabase[("Neon PostgreSQL Database")]
     end
 
-    CLI -->|1. Device Auth Request| AuthServer
-    AIServiceModule -->|2. Stream Text & Generate Code| GeminiAI
-    LoginCmd -->|Store Token| TokenFile
+    CLI -->|1. Device Code Auth Request| AuthServer
+    WakeUpCmd -->|2. Select Mode & Load Session| ChatModule
+    ChatModule -->|3. Get or Create Conversation| ChatServiceModule
+    ChatModule -->|4. Stream Text Request| AIServiceModule
+    AIServiceModule -->|5. HTTP SSE Stream| GeminiAPI
+    ChatServiceModule -->|6. Persist Messages & History| PrismaInstance
+    
+    LoginCmd -->|Save Token| TokenFile
     WhoamiCmd -->|Read Token| TokenFile
-    LogoutCmd -->|Clear Token| TokenFile
+    LogoutCmd -->|Delete Token| TokenFile
 
-    Client -->|OAuth Redirect & Auth Calls| ExpressApp
-    AuthReactClient -->|HTTP API Hooks| AuthServer
+    Client -->|OAuth Redirect & Auth Hooks| ExpressApp
+    AuthReactClient -->|Session Verification| AuthServer
     ExpressApp --> AuthServer
     AuthServer --> PrismaInstance
     PrismaInstance --> PgDatabase
@@ -202,7 +210,7 @@ graph TD
 
 ### 2. End-to-End CLI Device Authorization Sequence
 
-This diagram details the exact sequence of events when a developer executes `lumina login`, approves the request in the browser, and receives an authentication token in the terminal.
+Sequence diagram showing terminal authentication via GitHub OAuth and RFC 8628 Device Authorization.
 
 ```mermaid
 sequenceDiagram
@@ -251,9 +259,61 @@ sequenceDiagram
 
 ---
 
-### 3. CLI Auth Commands Decision Tree
+### 3. Interactive AI Chat & Memory Streaming Sequence
 
-Flowchart showing how `login`, `whoami`, and `logout` evaluate credentials and execute.
+Sequence diagram detailing prompt execution, database conversation retrieval, streaming AI responses, ANSI terminal rendering, and message history storage.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Developer
+    participant Terminal as Lumina Terminal Prompt
+    participant ChatEngine as Chat Engine (chat-with-ai.js)
+    participant ChatSvc as ChatService (chat-services.js)
+    participant AISvc as AIService (google-service.js)
+    participant Gemini as Gemini 3.7 API
+    participant DB as Neon PostgreSQL DB
+
+    User->>Terminal: Executes 'lumina wakeup'
+    Terminal->>ChatEngine: Selects Mode ('Chat', 'Tool Calling', or 'Agentic')
+    ChatEngine->>ChatSvc: getOrCreateConversation(userId, mode)
+    ChatSvc->>DB: Queries active Conversation & Message records
+    DB-->>ChatSvc: Returns conversation metadata & previous messages
+    ChatSvc-->>ChatEngine: Loads session & renders previous history
+    
+    loop Interactive Chat Loop
+        User->>Terminal: Inputs user prompt ("hello my name is piyush")
+        ChatEngine->>ChatSvc: addMessage(conversationId, 'user', prompt)
+        ChatSvc->>DB: Inserts new User Message record
+        
+        ChatEngine->>ChatSvc: getMessages(conversationId)
+        ChatSvc-->>ChatEngine: Returns formatted message history array
+        
+        ChatEngine->>AISvc: sendMessage(messages, onChunkCallback)
+        AISvc->>Gemini: POST streamText (model: gemini-3.7-flash, system, messages)
+        
+        loop SSE Text Stream
+            Gemini-->>AISvc: Yields text stream chunk
+            AISvc-->>ChatEngine: Executes onChunk(chunk)
+            ChatEngine->>Terminal: Renders real-time ANSI Markdown chunk
+        end
+        
+        AISvc-->>ChatEngine: Returns full aggregated response text
+        ChatEngine->>ChatSvc: addMessage(conversationId, 'assistant', fullResponse)
+        ChatSvc->>DB: Inserts Assistant Message record
+        
+        opt First Message Exchange
+            ChatEngine->>ChatSvc: updateTitle(conversationId, titleSnippet)
+            ChatSvc->>DB: Updates Conversation title
+        end
+    end
+```
+
+---
+
+### 4. CLI Command Execution Flowchart
+
+Flowchart detailing how authentication commands (`login`, `whoami`, `logout`) and AI agent commands (`wakeup`) operate.
 
 ```mermaid
 flowchart TD
@@ -269,6 +329,16 @@ flowchart TD
     StartPolling --> ReceiveToken[Receive Access Token]
     ReceiveToken --> SaveToken[Save to ~/.better-auth/token.json]
     SaveToken --> LoginDone([Output Welcome Message])
+
+    CommandChoice -->|lumina wakeup| CheckWakeToken{Token in ~/.better-auth/token.json?}
+    CheckWakeToken -->|No / Expired| ShowWakeLoggedOut[Output: Please login first]
+    ShowWakeLoggedOut --> WakeDone([Exit 0])
+    CheckWakeToken -->|Yes| ModePrompt[Clack Prompt: Select Mode Chat/Tool/Agent]
+    ModePrompt -->|Mode Selected| InitConv[ChatService: getOrCreateConversation]
+    InitConv --> StartLoop[Interactive Terminal Prompt Loop]
+    StartLoop --> RenderStream[AIService: streamText & marked-terminal]
+    RenderStream --> SaveHistory[Save User & Assistant Messages to DB]
+    SaveHistory --> StartLoop
 
     CommandChoice -->|lumina whoami| CheckTokenFile{Token File Exists & Valid?}
     CheckTokenFile -->|No / Expired| OutputLoggedOut[Output: You are currently logged out]
@@ -291,14 +361,16 @@ flowchart TD
 
 ---
 
-### 4. Database Entity Relationship Diagram (ERD)
+### 5. Database Entity Relationship Diagram (ERD)
 
-The complete Prisma relational model for users, sessions, accounts, verifications, and device authorization codes.
+Relational model showing PostgreSQL tables managed by Prisma ORM.
 
 ```mermaid
 erDiagram
     USER ||--o{ SESSION : "has many"
     USER ||--o{ ACCOUNT : "has many"
+    USER ||--o{ CONVERSATION : "has many"
+    CONVERSATION ||--o{ MESSAGE : "has many"
 
     USER {
         string id PK
@@ -359,9 +431,20 @@ erDiagram
         string scope
     }
 
-    TEST {
+    CONVERSATION {
         string id PK
-        string name
+        string userId FK
+        string title
+        string mode
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    MESSAGE {
+        string id PK
+        string conversationId FK
+        string role
+        string content
         datetime createdAt
     }
 ```
@@ -391,23 +474,34 @@ lumina/
 │   └── package.json                    # Client Dependencies (`sonner`, `@base-ui/react`, Next 16)
 │
 ├── server/                             # Express 5 Backend API Server & CLI Package (Port 3005)
-│   ├── prisma/                         # Prisma Database Setup
-│   │   └── schema.prisma               # Relational Schema Specification
+│   ├── prisma/                         # Prisma Database Setup & Migrations
+│   │   ├── migrations/                 # Migration SQL Files
+│   │   └── schema.prisma               # Relational Schema Specification (User, Session, Conversation, Message)
 │   ├── src/
 │   │   ├── cli/                        # Lumina CLI Implementation
 │   │   │   ├── ai/                     # AI Engine & Provider Services
-│   │   │   │   └── google-service.js   # Gemini AI Service (`streamText`, `sendMessage`, `getMessage`)
-│   │   │   ├── commands/auth/login.js  # CLI login, logout, & whoami Action Handlers
-│   │   │   └── main.js                 # CLI Binary Entry Point, ASCII Figlet & Commander Setup
-│   │   ├── config/                     # Server & AI Configurations
-│   │   │   └── google.config.js        # Google Generative AI Model & API Key Configuration
-│   │   ├── lib/                        # Server Shared Libraries
-│   │   │   ├── auth.js                 # Better Auth Express Instance & Device Authorization Plugin
-│   │   │   ├── db.js                   # Prisma Client & PostgreSQL Connection Pool Instance
-│   │   │   └── token.js                # Token File Utilities (~/.better-auth/token.json)
+│   │   │   │   └── google-service.js   # Gemini 3.7 AI Service (`streamText`, System Prompts)
+│   │   │   ├── chat/                   # CLI Terminal Interactive Chat Handlers
+│   │   │   │   ├── chat-with-ai.js     # Interactive Terminal Chat Loop & Markdown Renderer
+│   │   │   │   ├── chat-with-ai-tool.js# Tool Calling Chat Mode Handler
+│   │   │   │   └── chat-with-ai-agent.js# Agentic AI Mode Handler
+│   │   │   ├── commands/
+│   │   │   │   ├── ai/
+│   │   │   │   │   └── wakeUp.js       # 'lumina wakeup' Command & Options Prompts
+│   │   │   │   └── auth/
+│   │   │   │       └── login.js        # 'lumina login', 'whoami', & 'logout' Handlers
+│   │   │   └── main.js                 # CLI Binary Entry Point (`lumina` / `orbitals`)
+│   │   ├── config/                     # Server Configurations
+│   │   │   └── google.config.js        # Google Generative AI Model & Key Config
+│   │   ├── lib/                        # Shared Server Libraries
+│   │   │   ├── auth.js                 # Better Auth Server Engine & Device Flow Plugin
+│   │   │   ├── db.js                   # Prisma Client Singleton & Postgres Connection Pool
+│   │   │   └── token.js                # Local Token File Utilities (~/.better-auth/token.json)
+│   │   ├── services/                   # Server Data Services
+│   │   │   └── chat-services.js        # Conversation & Message Database Persistence Layer
 │   │   └── index.js                    # Express Application Entry Point (/api/auth/*, /api/me)
 │   ├── .env                            # Backend Server Environment Variables
-│   └── package.json                    # Server Dependencies (`@ai-sdk/google`, `ai`, `better-auth`)
+│   └── package.json                    # Server Dependencies (`@ai-sdk/google`, `ai`, `marked`, `marked-terminal`)
 │
 └── README.md                           # Master Architecture Documentation
 ```
@@ -430,15 +524,16 @@ lumina/
 | Technology | Version | Purpose |
 | :--- | :--- | :--- |
 | **Node.js** | `>= 18.x` | JavaScript Runtime (ES Modules) |
-| **Google Gemini AI** | `@ai-sdk/google` | Generative AI Provider (`gemini-2.5-flash`) |
-| **Vercel AI SDK** | `ai` | AI Streaming & Structured Object Generation |
+| **Google Gemini AI** | `@ai-sdk/google` | Generative AI Provider (`gemini-3.7-flash`) |
+| **Vercel AI SDK** | `ai` | AI Text Streaming & Structured Object Generation |
+| **Marked & Terminal** | `15.x` / `7.x` | Terminal ANSI Markdown Rendering |
 | **Express** | `5.2.1` | HTTP Server & Web API Routing |
 | **Better Auth Server** | `1.6.27` | Auth Engine & Device Authorization Plugin |
 | **Prisma ORM** | `7.9.1` | Database ORM & Migrations |
 | **PostgreSQL** | `Neon DB` | Cloud Serverless Database |
 | **Commander.js** | `15.0.0` | CLI Command Router |
 | **Clack Prompts** | `1.7.0` | Interactive CLI Prompts & Confirmations |
-| **Chalk & Figlet** | Latest | ASCII Banners & Colored Output |
+| **Chalk & Boxen** | Latest | Terminal Banners, Boxes & Colored Output |
 
 ---
 
@@ -469,7 +564,7 @@ lumina/
 
 ## 🗄️ Database Schema Specification
 
-Below is the complete database model defined in [`server/prisma/schema.prisma`](file:///d:/lumina/server/prisma/schema.prisma):
+Below is the complete database schema defined in [`server/prisma/schema.prisma`](file:///d:/lumina/server/prisma/schema.prisma):
 
 ```prisma
 datasource db {
@@ -482,16 +577,18 @@ generator client {
 }
 
 model User {
-  id            String    @id
+  id            String         @id
   name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false)
+  email         String
+  emailVerified Boolean        @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   sessions      Session[]
   accounts      Account[]
+  conversations Conversation[]
 
+  @@unique([email])
   @@map("user")
 }
 
@@ -556,30 +653,60 @@ model DeviceCode {
 
   @@map("deviceCode")
 }
+
+model Conversation {
+  id        String    @id @default(cuid())
+  userId    String
+  title     String?
+  mode      String    @default("chat")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@map("conversation")
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  role           String
+  content        String
+  createdAt      DateTime     @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@map("message")
+}
 ```
 
 ---
 
 ## 💻 CLI Commands Reference
 
-You can run `lumina` commands from any directory terminal once linked (`npm link` inside `server/`).
+You can run `lumina` or `orbitals` commands from any terminal once linked (`npm link` inside `server/`).
 
-### 1. `lumina login`
+### 1. `lumina wakeup`
+Launches the interactive AI Pair Programming session with mode choice (`Chat`, `Tool Calling`, `Agentic Mode`).
+```bash
+lumina wakeup
+```
+
+### 2. `lumina login`
 Initiates device authorization flow, displays user code, opens browser, and polls for token authorization.
 ```bash
 lumina login
 ```
-Options:
-- `--server-url <url>`: Specify custom backend auth server (default: `http://localhost:3005`).
-- `--client-id <id>`: Specify custom OAuth client ID.
 
-### 2. `lumina whoami`
+### 3. `lumina whoami`
 Displays current authenticated user details (Name, Email, ID). Works smoothly when logged in or logged out.
 ```bash
 lumina whoami
 ```
 
-### 3. `lumina logout`
+### 4. `lumina logout`
 Prompts confirmation and clears local credentials from `~/.better-auth/token.json`.
 ```bash
 lumina logout
@@ -608,7 +735,7 @@ GITHUB_CLIENT_SECRET=your_github_client_secret
 
 # Google Gemini AI Config
 GOOGLE_GENERATIVE_AI_API_KEY=your_google_ai_api_key_here
-LUMINA_MODEL=gemini-2.5-flash
+LUMINA_MODEL=gemini-3.7-flash
 ```
 
 ---
@@ -666,26 +793,23 @@ npm run dev
 
 ## 🐛 Solved Edge Cases & Troubleshooting Guide
 
-### 1. `Cannot find module 'sonner'`
-- **Fix**: Installed `sonner` package in `client/` and rendered `<SonnerToaster richColors />` inside `app/layout.tsx`.
+### 1. `Prisma Schema Validation Error (Relation Mismatch)`
+- **Fix**: Added back-relation `conversations Conversation[]` array to `User` model to match `user User @relation(fields: [userId], references: [id], onDelete: Cascade)` in `Conversation`.
 
-### 2. Device Code Not Claimed Error on Approval
-- **Fix**: Better Auth requires calling `GET /api/auth/device?user_code=...` prior to `POST /api/auth/device/approve` so the session binds `userId` to `DeviceCode`. `app/approve/page.tsx` now calls this check automatically on mount.
+### 2. Google AI Model 404 Deprecation Error
+- **Fix**: Google AI Studio retired legacy endpoints (`gemini-2.5-flash` / `gemini-2.0-flash`). Updated model identifier to **`gemini-3.7-flash`** across environment variables and config fallbacks.
 
-### 3. `ReferenceError: clearStoredToken is not defined`
-- **Fix**: Imported `clearStoredToken` and `requireAuth` in `server/src/cli/commands/auth/login.js` from `../../../lib/token.js`.
+### 3. Missing `marked` Module in Terminal Chat
+- **Fix**: Installed `marked` package alongside `marked-terminal` in `server/package.json` for rich ANSI code blocks and Markdown formatting.
 
-### 4. `ReferenceError: z is not defined`
-- **Fix**: Imported `z` from `"zod"` in `server/src/cli/commands/auth/login.js`.
+### 4. Missing `chat-with-ai-tool.js` Module Error
+- **Fix**: Implemented `startToolChat` and `startAgentChat` handler modules in `server/src/cli/chat/` so `wakeUp.js` resolves all mode selections without `ERR_MODULE_NOT_FOUND`.
 
 ### 5. Slow CLI Terminal Response (~5 Seconds)
 - **Fix**: Added `signal: AbortSignal.timeout(500)` to API fetches and explicit `process.exit(0)` to close Prisma background database socket connections instantly.
 
 ### 6. Command Execution Outside Server Folder (`.env` not found)
-- **Fix**: Updated `db.js`, `main.js`, and `login.js` to resolve `.env` path using `path.resolve(__dirname, "../../.env")` relative to script file locations.
-
-### 7. PostgreSQL SSL Deprecation Warning
-- **Fix**: Updated `DATABASE_URL` and `DIRECT_URL` in `server/.env` to use `sslmode=verify-full`.
+- **Fix**: Updated `db.js`, `main.js`, `wakeUp.js`, and `login.js` to resolve `.env` path using `path.resolve(__dirname, "../../../.env")` relative to script file locations.
 
 ---
 
