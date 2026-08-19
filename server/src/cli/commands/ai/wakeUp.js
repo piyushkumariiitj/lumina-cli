@@ -1,15 +1,17 @@
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
-import chalk from "chalk";
 import { Command } from "commander";
 import yoctoSpinner from "yocto-spinner";
-import { getStoredToken } from "../../../lib/token.js";
+import { getStoredToken, updateStoredUser } from "../../../lib/token.js";
 import prisma from "../../../lib/db.js";
 import { select, isCancel } from "@clack/prompts";
 import { startChat } from "../../chat/chat-with-ai.js";
 import { startToolChat } from "../../chat/chat-with-ai-tool.js";
 import { startAgentChat } from "../../chat/chat-with-ai-agent.js";
+import { renderBanner, renderUserCard, renderGoodbye, renderError } from "../../ui/components.js";
+import { whoamiAction } from "../auth/login.js";
+import { theme } from "../../ui/theme.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,96 +21,120 @@ dotenv.config({ path: envPath, quiet: true });
 
 const URL = process.env.BETTER_AUTH_URL || "http://localhost:3005";
 
-const wakeUpAction = async () => {
+export const wakeUpAction = async () => {
+  renderBanner();
+
   const token = await getStoredToken();
 
   if (!token?.access_token) {
-    console.log(chalk.yellow("\n💡 You are currently logged out."));
-    console.log(chalk.gray("   Run: lumina login to sign in.\n"));
+    console.log(theme.warning("💡 You are currently not signed in."));
+    console.log(theme.muted("   Run ") + theme.accentBold("lumina login") + theme.muted(" to authenticate with GitHub.\n"));
     return;
   }
 
-  const spinner = yoctoSpinner({ text: "Fetching User Information..." });
-  spinner.start();
+  const spinner = yoctoSpinner({
+    text: theme.muted("Synchronizing developer profile..."),
+    color: "yellow",
+  }).start();
 
-  let user = null;
+  let user = token.user || null;
 
-  // 1. Fast-path: Try HTTP API first with 500ms timeout
-  try {
-    const response = await fetch(`${URL}/api/me`, {
-      headers: {
-        Authorization: `Bearer ${token.access_token}`,
-        Cookie: `better-auth.session_token=${token.access_token}`
-      },
-      signal: AbortSignal.timeout(500)
-    });
-    if (response.ok) {
-      const data = await response.json();
-      if (data?.user) {
-        user = data.user;
+  // 1. Try HTTP API (fast 600ms timeout)
+  if (!user?.name || user.name === "Developer") {
+    try {
+      const response = await fetch(`${URL}/api/me`, {
+        headers: {
+          Authorization: `Bearer ${token.access_token}`,
+          Cookie: `better-auth.session_token=${token.access_token}`,
+        },
+        signal: AbortSignal.timeout(600),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data?.user) {
+          user = data.user;
+          await updateStoredUser(user);
+        }
       }
+    } catch {
+      // Backend offline or timeout
     }
-  } catch {
-    // API server offline or fast timeout, fallback to Prisma DB query
   }
 
-  // 2. Fallback: Query Prisma Database with graceful error catching
-  if (!user) {
+  // 2. Try direct Prisma DB query with timeout if not found via API
+  if (!user?.name || user.name === "Developer") {
     try {
-      user = await prisma.user.findFirst({
-        where: {
-          sessions: {
-            some: { token: token.access_token },
+      const dbUser = await Promise.race([
+        prisma.user.findFirst({
+          where: {
+            sessions: {
+              some: { token: token.access_token },
+            },
           },
-        },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          image: true,
-        },
-      });
-    } catch (dbErr) {
-      spinner.stop();
-      console.log(chalk.red("\n❌ Could not connect to backend server or database."));
-      console.log(chalk.yellow("   Make sure your backend server or internet database connection is active.\n"));
-      return;
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1200)),
+      ]);
+      if (dbUser) {
+        user = dbUser;
+        await updateStoredUser(user);
+      }
+    } catch {
+      // DB connection offline/slow
     }
   }
 
   spinner.stop();
 
+  // If no user object, create clean fallback with token slice
   if (!user) {
-    console.log(chalk.yellow("\n💡 Session expired or invalid. Please login again."));
-    console.log(chalk.gray("   Run: lumina login\n"));
-    return;
+    user = {
+      id: token.access_token.slice(0, 12),
+      name: "Developer",
+      email: "local@lumina",
+    };
   }
 
-  console.log(chalk.green(`\nWelcome back, ${user.name}!\n`));
+  // Render clean user overview card
+  renderUserCard(user);
 
   const choice = await select({
-    message: "Select an Option:",
+    message: "Select capability:",
     options: [
       {
         value: "chat",
-        label: "Chat",
-        hint: "Simple chat with AI",
+        label: "💬 Chat",
+        hint: "Conversational AI with memory and code formatting",
       },
       {
         value: "tool",
-        label: "Tool Calling",
-        hint: "Chat with tools (Google Search, Code Execution)",
+        label: "⚡ Tools",
+        hint: "Live web search, code execution, git, workspace reader",
       },
       {
         value: "agent",
-        label: "Agentic Mode",
-        hint: "Advanced AI agent (Coming soon)",
+        label: "🤖 Agent",
+        hint: "Autonomous project architect & code generator",
+      },
+      {
+        value: "whoami",
+        label: "⚙  Status & Diagnostics",
+        hint: "Inspect profile, Groq model, and database connection",
+      },
+      {
+        value: "exit",
+        label: "🚪 Exit",
       },
     ],
   });
 
-  if (isCancel(choice)) {
-    console.log(chalk.gray("\nOperation cancelled.\n"));
+  if (isCancel(choice) || choice === "exit") {
+    renderGoodbye();
     return;
   }
 
@@ -122,9 +148,12 @@ const wakeUpAction = async () => {
     case "agent":
       await startAgentChat();
       break;
+    case "whoami":
+      await whoamiAction();
+      break;
   }
 };
 
 export const wakeUp = new Command("wakeup")
-  .description("Wake up the AI")
+  .description("Launch the interactive Lumina AI environment")
   .action(wakeUpAction);

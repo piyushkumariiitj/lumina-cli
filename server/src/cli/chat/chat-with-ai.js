@@ -1,165 +1,124 @@
-import chalk from "chalk";
-import boxen from "boxen";
-import { text, isCancel, cancel, intro, outro } from "@clack/prompts";
+import { text, isCancel } from "@clack/prompts";
 import yoctoSpinner from "yocto-spinner";
-import { marked } from "marked";
-import { markedTerminal } from "marked-terminal";
-import { AIService } from "../ai/google-service.js";
+import { AIService } from "../ai/groq-service.js";
 import { ChatService } from "../../services/chat-services.js";
 import { getStoredToken } from "../../lib/token.js";
 import prisma from "../../lib/db.js";
+import { renderMarkdown } from "../ui/markdown.js";
+import { 
+  renderSessionHeader, 
+  renderError, 
+  renderGoodbye 
+} from "../ui/components.js";
+import { theme, symbols } from "../ui/theme.js";
+import { config } from "../../config/groq.config.js";
 
-// Configure marked to use terminal renderer
-marked.use(
-  markedTerminal({
-    // Styling options for terminal output
-    code: chalk.cyan,
-    blockquote: chalk.gray.italic,
-    heading: chalk.green.bold,
-    firstHeading: chalk.magenta.underline.bold,
-    hr: chalk.reset,
-    listitem: chalk.reset,
-    list: chalk.reset,
-    paragraph: chalk.reset,
-    strong: chalk.bold,
-    em: chalk.italic,
-    codespan: chalk.yellow.bgBlack,
-    del: chalk.dim.gray.strikethrough,
-    link: chalk.blue.underline,
-    href: chalk.blue.underline,
-  })
-);
-
-// Initialize services
 const aiService = new AIService();
 const chatService = new ChatService();
 
 async function getUserFromToken() {
   const token = await getStoredToken();
-  
+
   if (!token?.access_token) {
-    throw new Error("Not authenticated. Please run 'orbit login' first.");
+    throw new Error("Not authenticated. Please run 'lumina login' first.");
   }
 
-  const spinner = yoctoSpinner({ text: "Authenticating..." }).start();
-
-  const user = await prisma.user.findFirst({
-    where: {
-      sessions: {
-        some: { token: token.access_token },
-      },
-    },
-  });
-
-  if (!user) {
-    spinner.error("User not found");
-    throw new Error("User not found. Please login again.");
+  if (token.user) {
+    return token.user;
   }
 
-  spinner.success(`Welcome back, ${user.name}!`);
-  return user;
+  try {
+    const user = await Promise.race([
+      prisma.user.findFirst({
+        where: {
+          sessions: {
+            some: { token: token.access_token },
+          },
+        },
+      }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1000)),
+    ]);
+    if (user) return user;
+  } catch {
+    // Fallback
+  }
+
+  return { id: token.access_token.slice(0, 12), name: "Developer", email: "local@lumina" };
 }
 
 async function initConversation(userId, conversationId = null, mode = "chat") {
-  const spinner = yoctoSpinner({ text: "Loading conversation..." }).start();
-  
-  const conversation = await chatService.getOrCreateConversation(
-    userId,
-    conversationId,
-    mode
-  );
-  
-  spinner.success("Conversation loaded");
-  
-  // Display conversation info in a box
-  const conversationInfo = boxen(
-    `${chalk.bold("Conversation")}: ${conversation.title}\n${chalk.gray("ID: " + conversation.id)}\n${chalk.gray("Mode: " + conversation.mode)}`,
-    {
-      padding: 1,
-      margin: { top: 1, bottom: 1 },
-      borderStyle: "round",
-      borderColor: "cyan",
-      title: "💬 Chat Session",
-      titleAlignment: "center",
-    }
-  );
-  
-  console.log(conversationInfo);
-  
-  // Display existing messages if any
+  let conversation = null;
+  try {
+    conversation = await chatService.getOrCreateConversation(
+      userId,
+      conversationId,
+      mode
+    );
+  } catch {
+    conversation = { id: "local-session", title: "Chat", mode: "chat", messages: [] };
+  }
+
+  renderSessionHeader({
+    title: conversation.title,
+    mode: "chat",
+    conversationId: conversation.id,
+  });
+
   if (conversation.messages?.length > 0) {
-    console.log(chalk.yellow("📜 Previous messages:\n"));
     displayMessages(conversation.messages);
   }
-  
+
   return conversation;
 }
 
 function displayMessages(messages) {
   messages.forEach((msg) => {
     if (msg.role === "user") {
-      const userBox = boxen(chalk.white(msg.content), {
-        padding: 1,
-        margin: { left: 2, bottom: 1 },
-        borderStyle: "round",
-        borderColor: "blue",
-        title: "👤 You",
-        titleAlignment: "left",
-      });
-      console.log(userBox);
+      console.log(`\n${theme.userBold("You:")} ${theme.white(msg.content)}`);
     } else {
-      // Render markdown for assistant messages
-      const renderedContent = marked.parse(msg.content);
-      const assistantBox = boxen(renderedContent.trim(), {
-        padding: 1,
-        margin: { left: 2, bottom: 1 },
-        borderStyle: "round",
-        borderColor: "green",
-        title: "🤖 Assistant",
-        titleAlignment: "left",
-      });
-      console.log(assistantBox);
+      console.log(`\n${theme.agentBold("Lumina:")}\n${renderMarkdown(msg.content)}\n`);
     }
   });
 }
 
 async function saveMessage(conversationId, role, content) {
-  return await chatService.addMessage(conversationId, role, content);
+  try {
+    return await chatService.addMessage(conversationId, role, content);
+  } catch {
+    // Ignore database write failures in offline mode
+    return null;
+  }
 }
 
 async function getAIResponse(conversationId) {
-  const spinner = yoctoSpinner({ 
-    text: "AI is thinking...", 
-    color: "cyan" 
+  const spinner = yoctoSpinner({
+    text: theme.muted("Thinking..."),
+    color: "yellow",
   }).start();
 
-  const dbMessages = await chatService.getMessages(conversationId);
-  const aiMessages = chatService.formatMessagesForAI(dbMessages);
-  
+  let aiMessages = [];
+  try {
+    const dbMessages = await chatService.getMessages(conversationId);
+    aiMessages = chatService.formatMessagesForAI(dbMessages);
+  } catch {
+    // Fallback to minimal array
+  }
+
   let fullResponse = "";
   let isFirstChunk = true;
-  
+
   try {
     const result = await aiService.sendMessage(aiMessages, (chunk) => {
-      // Stop spinner on first chunk and show header
       if (isFirstChunk) {
         spinner.stop();
-        console.log("\n");
-        const header = chalk.green.bold("🤖 Assistant:");
-        console.log(header);
-        console.log(chalk.gray("─".repeat(60)));
+        console.log(`\n${theme.agentBold("Lumina:")}`);
         isFirstChunk = false;
       }
+      process.stdout.write(chunk);
       fullResponse += chunk;
     });
-    
-    // Now render the complete markdown response
+
     console.log("\n");
-    const renderedMarkdown = marked.parse(fullResponse);
-    console.log(renderedMarkdown);
-    console.log(chalk.gray("─".repeat(60)));
-    console.log("\n");
-    
     return result.content;
   } catch (error) {
     if (spinner) {
@@ -172,28 +131,19 @@ async function getAIResponse(conversationId) {
 async function updateConversationTitle(conversationId, userInput, messageCount) {
   if (messageCount === 1) {
     const title = userInput.slice(0, 50) + (userInput.length > 50 ? "..." : "");
-    await chatService.updateTitle(conversationId, title);
+    try {
+      await chatService.updateTitle(conversationId, title);
+    } catch {
+      // Offline mode
+    }
   }
 }
 
 async function chatLoop(conversation) {
-  const helpBox = boxen(
-    `${chalk.gray('• Type your message and press Enter')}\n${chalk.gray('• Markdown formatting is supported in responses')}\n${chalk.gray('• Type "exit" to end conversation')}\n${chalk.gray('• Press Ctrl+C to quit anytime')}`,
-    {
-      padding: 1,
-      margin: { bottom: 1 },
-      borderStyle: "round",
-      borderColor: "gray",
-      dimBorder: true,
-    }
-  );
-  
-  console.log(helpBox);
-
   while (true) {
     const userInput = await text({
-      message: chalk.blue("💬 Your message"),
-      placeholder: "Type your message...",
+      message: theme.accent("❯"),
+      placeholder: "Type your message or 'exit'...",
       validate(value) {
         if (!value || value.trim().length === 0) {
           return "Message cannot be empty";
@@ -201,88 +151,55 @@ async function chatLoop(conversation) {
       },
     });
 
-    // Handle cancellation (Ctrl+C)
     if (isCancel(userInput)) {
-      const exitBox = boxen(chalk.yellow("Chat session ended. Goodbye! 👋"), {
-        padding: 1,
-        margin: 1,
-        borderStyle: "round",
-        borderColor: "yellow",
-      });
-      console.log(exitBox);
+      renderGoodbye();
       process.exit(0);
     }
 
-    // Handle exit command
-    if (userInput.toLowerCase() === "exit") {
-      const exitBox = boxen(chalk.yellow("Chat session ended. Goodbye! 👋"), {
-        padding: 1,
-        margin: 1,
-        borderStyle: "round",
-        borderColor: "yellow",
-      });
-      console.log(exitBox);
+    const trimmed = userInput.trim();
+
+    if (trimmed.toLowerCase() === "exit" || trimmed.toLowerCase() === "quit") {
+      renderGoodbye();
       break;
     }
 
-  
-  
+    if (trimmed.toLowerCase() === "/clear" || trimmed.toLowerCase() === "clear") {
+      console.clear();
+      renderSessionHeader({
+        title: conversation.title,
+        mode: "chat",
+        conversationId: conversation.id,
+      });
+      continue;
+    }
 
     try {
-      // Save user message
-      await saveMessage(conversation.id, "user", userInput);
+      await saveMessage(conversation.id, "user", trimmed);
+      let msgCount = 1;
+      try {
+        const msgs = await chatService.getMessages(conversation.id);
+        msgCount = msgs.length;
+      } catch {}
 
-      // Get messages count before AI response
-      const messages = await chatService.getMessages(conversation.id);
-      
-      // Get AI response with streaming and markdown rendering
       const aiResponse = await getAIResponse(conversation.id);
 
       if (aiResponse) {
-        // Save AI response
         await saveMessage(conversation.id, "assistant", aiResponse);
-
-        // Update title if first exchange
-        await updateConversationTitle(conversation.id, userInput, messages.length);
+        await updateConversationTitle(conversation.id, trimmed, msgCount);
       }
     } catch (error) {
-      const errorBox = boxen(chalk.red(`❌ Error: ${error.message}`), {
-        padding: 1,
-        margin: 1,
-        borderStyle: "round",
-        borderColor: "red",
-      });
-      console.log(errorBox);
+      renderError("Error", error.message);
     }
   }
 }
 
-// Main entry point
 export async function startChat(mode = "chat", conversationId = null) {
   try {
-    // Display intro banner
-    intro(
-      boxen(chalk.bold.cyan("🚀 Orbit AI Chat"), {
-        padding: 1,
-        borderStyle: "double",
-        borderColor: "cyan",
-      })
-    );
-
     const user = await getUserFromToken();
     const conversation = await initConversation(user.id, conversationId, mode);
     await chatLoop(conversation);
-    
-    // Display outro
-    outro(chalk.green("✨ Thanks for chatting!"));
   } catch (error) {
-    const errorBox = boxen(chalk.red(`❌ Error: ${error.message}`), {
-      padding: 1,
-      margin: 1,
-      borderStyle: "round",
-      borderColor: "red",
-    });
-    console.log(errorBox);
+    renderError("Chat Error", error.message);
     process.exit(1);
   }
 }

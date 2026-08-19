@@ -17,7 +17,7 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "@ai-sdk/google": "^4.0.44",
+    "@ai-sdk/groq": "^4.0.28",
     "@clack/prompts": "^1.7.0",
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
@@ -30,6 +30,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "figlet": "^1.11.4",
+    "groq-sdk": "^1.5.0",
     "marked": "^18.0.9",
     "marked-terminal": "^7.3.0",
     "open": "^11.0.1",
