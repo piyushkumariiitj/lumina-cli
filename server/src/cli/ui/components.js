@@ -54,50 +54,73 @@ export function renderSessionHeader({ title, mode = "chat", conversationId = "",
 }
 
 /**
- * Tool execution label
- * Uses tool (#5fafd7) for name and toolDim (#6c6c6c) for args
+ * Human-Friendly Tool execution indicator
  */
-export function renderToolExecution(toolName, args = {}) {
+export function renderToolExecution(toolName, args = {}, fallbackQuery = "") {
+  const name = (toolName || "").toLowerCase();
+
   let queryText = "";
-  if (typeof args === "object" && args !== null) {
-    queryText = args.query || args.expression || args.filePath || args.code || args.url || JSON.stringify(args);
+  if (args && typeof args === "object") {
+    queryText = args.query || args.q || args.input || args.expression || args.expr || args.filePath || args.path || args.code || args.url || "";
+  } else if (typeof args === "string" && args.trim() && args.trim() !== "{}") {
+    queryText = args.trim();
+  }
+
+  if (!queryText && fallbackQuery) {
+    queryText = fallbackQuery;
+  }
+
+  if (queryText && queryText.length > 55) {
+    queryText = queryText.slice(0, 52) + "...";
+  }
+
+  if (name.includes("search")) {
+    console.log(`\n  ${theme.tool("⚡")} ${theme.tool("Searching the web for:")} ${theme.whiteBold(`"${queryText || "information"}"`)}`);
+  } else if (name.includes("code")) {
+    const lang = args?.language || "script";
+    console.log(`\n  ${theme.tool("⚡")} ${theme.tool("Executing")} ${theme.accentBold(lang)} ${theme.tool("code...")}`);
+  } else if (name.includes("calc")) {
+    console.log(`\n  ${theme.tool("⚡")} ${theme.tool("Calculating:")} ${theme.accentBold(queryText || "formula")}`);
+  } else if (name.includes("workspace") || name.includes("file")) {
+    console.log(`\n  ${theme.tool("⚡")} ${theme.tool("Reading file:")} ${theme.whiteBold(queryText || "source")}`);
+  } else if (name.includes("git")) {
+    console.log(`\n  ${theme.tool("⚡")} ${theme.tool("Inspecting git repository...")}`);
+  } else if (name.includes("fetch") || name.includes("url")) {
+    console.log(`\n  ${theme.tool("⚡")} ${theme.tool("Fetching URL:")} ${theme.tool.underline(queryText || "resource")}`);
+  } else if (name.includes("system")) {
+    console.log(`\n  ${theme.tool("⚡")} ${theme.tool("Checking system diagnostics...")}`);
   } else {
-    queryText = String(args || "");
+    console.log(`\n  ${theme.tool("⚡")} ${theme.tool("Running")} ${theme.toolBold(toolName)}...`);
   }
-
-  if (queryText.length > 60) {
-    queryText = queryText.slice(0, 57) + "...";
-  }
-
-  console.log(`  ${theme.tool("⚡")} ${theme.toolBold(toolName)}${queryText ? theme.toolDim(`: "${queryText}"`) : ""}`);
 }
 
 /**
  * Tool result log
- * Uses success (#5fd787) or error (#ff5f5f) with toolDim (#6c6c6c) for output body
  */
 export function renderToolResult(toolName, result, success = true) {
   if (!success) {
-    console.log(`  ${theme.error("✖")} ${theme.error(toolName + " failed:")} ${theme.toolDim(result?.error || "Error")}`);
+    console.log(`  ${theme.error("✖")} ${theme.error(toolName + " failed:")} ${theme.toolDim(result?.error || "Error")}\n`);
     return;
   }
 
   let summary = "";
   if (result && typeof result === "object") {
     if (result.results && Array.isArray(result.results)) {
-      summary = `Found ${result.results.length} results`;
+      summary = `Found ${result.results.length} sources`;
     } else if (result.output) {
-      summary = String(result.output).trim().slice(0, 60);
+      summary = String(result.output).trim().slice(0, 50);
     } else if (result.result !== undefined) {
-      summary = `Result: ${result.result}`;
+      summary = `Computed: ${result.result}`;
+    } else if (result.lines !== undefined) {
+      summary = `Read ${result.lines} lines`;
     } else {
-      summary = "Done";
+      summary = "Completed";
     }
   } else {
-    summary = String(result || "Done").slice(0, 60);
+    summary = String(result || "Completed").slice(0, 50);
   }
 
-  console.log(`  ${theme.success("✔")} ${theme.toolDim(summary)}`);
+  console.log(`  ${theme.success("✔")} ${theme.muted(summary)}\n`);
 }
 
 /**

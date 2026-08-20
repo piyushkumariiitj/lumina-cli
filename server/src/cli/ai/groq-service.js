@@ -97,16 +97,29 @@ export class AIService {
     onChunk,
     tools = undefined,
     onToolCall = undefined,
+    onToolResult = undefined,
     isFallback = false
   ) {
     try {
       const activeModel = isFallback ? this.fallbackModel : this.model;
       const modelName = isFallback ? config.fallbackModel : config.model;
 
+      // Sanitize and validate messages array to ensure it is never empty
+      const validMessages = (Array.isArray(messages) ? messages : [])
+        .filter((m) => m && m.content)
+        .map((m) => ({
+          role: m.role || "user",
+          content: typeof m.content === "string" ? m.content : JSON.stringify(m.content),
+        }));
+
+      if (validMessages.length === 0) {
+        throw new Error("Cannot send empty prompt to AI model.");
+      }
+
       const streamConfig = {
         model: activeModel,
-        system: `You are Lumina CLI, an AI-powered Software Engineering Agent powered by Groq (${modelName}). You help developers build, analyze, and debug software. Always provide complete, accurate, and high-quality answers with clean code examples where appropriate.`,
-        messages: messages,
+        system: `You are Lumina CLI, an expert AI Software Engineering Agent powered by Groq (${modelName}). You help developers build, analyze, and debug software. Always provide clean, direct, and well-structured natural language answers with markdown formatting. Format data and lists using clean bullet points and bold keys (e.g. • **Parameter**: Value) rather than markdown tables for optimal terminal rendering.`,
+        messages: validMessages,
         maxRetries: 1,
         maxTokens: 4096,
         providerOptions: {
@@ -144,6 +157,9 @@ export class AIService {
           }
         } else if (part.type === "tool-result") {
           toolResults.push(part);
+          if (onToolResult) {
+            onToolResult(part);
+          }
         }
       }
 
@@ -153,25 +169,55 @@ export class AIService {
         Promise.resolve(result.usage).catch(() => undefined),
       ]);
 
-      // If text stream was empty but tool results were generated, synthesize a clean response
+      // If text stream was empty but tool results were generated, synthesize a clean natural answer
       if (!fullResponse.trim() && toolResults.length > 0) {
-        fullResponse = toolResults
-          .map((tr) => {
-            const out = tr.output ?? tr.result;
-            if (out && typeof out === "object") {
-              if (out.result !== undefined) {
-                return `**Result**: \`${out.result}\`` + (out.expression ? ` (for \`${out.expression}\`)` : "");
+        try {
+          const lastUserMsg = validMessages[validMessages.length - 1]?.content || "User request";
+          const toolData = toolResults.map((tr) => tr.output ?? tr.result);
+
+          const synthStream = streamText({
+            model: activeModel,
+            system: `You are Lumina CLI. Synthesize the provided tool data and answer the user query directly, concisely, and cleanly in natural language with markdown bullet points (e.g. • **Parameter**: Value). Do NOT use markdown tables or raw JSON dumps.`,
+            messages: [
+              {
+                role: "user",
+                content: `User query: "${lastUserMsg}"\n\nTool Execution Results:\n${JSON.stringify(toolData, null, 2)}\n\nPlease provide a clear, helpful, and natural language response answering the query:`,
+              },
+            ],
+            maxTokens: 1024,
+          });
+
+          for await (const chunk of synthStream.textStream) {
+            if (chunk) {
+              fullResponse += chunk;
+              if (onChunk) {
+                onChunk(chunk);
               }
-              if (out.error) {
-                return `⚠️ ${out.error}`;
-              }
-              return Object.entries(out)
-                .map(([k, v]) => `• **${k}**: ${typeof v === "object" ? JSON.stringify(v) : v}`)
-                .join("\n");
             }
-            return String(out || "Executed successfully");
-          })
-          .join("\n\n");
+          }
+        } catch {
+          // Fallback formatting if synthesis stream fails
+          fullResponse = toolResults
+            .map((tr) => {
+              const out = tr.output ?? tr.result;
+              if (out && typeof out === "object") {
+                if (out.results && Array.isArray(out.results)) {
+                  return out.results
+                    .slice(0, 4)
+                    .map((r) => `• **${r.title}**: ${r.snippet}\n  ${r.url}`)
+                    .join("\n\n");
+                }
+                if (out.result !== undefined) {
+                  return `**Result**: \`${out.result}\``;
+                }
+                if (out.output) {
+                  return String(out.output);
+                }
+              }
+              return String(out || "");
+            })
+            .join("\n\n");
+        }
       }
 
       // Check for empty response only if NO text AND NO tools were executed

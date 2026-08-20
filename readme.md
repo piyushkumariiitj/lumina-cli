@@ -124,8 +124,12 @@ Arm Lumina with specific developer tools via interactive multi-select:
   [✔] System Diagnostics             (Inspect OS, Node version, memory, uptime)
 ```
 
-- **Clean Tool Execution**: Minimalist indicators (`⚡ web_search: "query"` and `✔ Found 3 results`).
-- **Intelligent Synthesis**: When tools execute, Lumina summarizes the output or formats raw results cleanly.
+- **Human-Friendly Status Indicators**: Instead of raw JSON dumps, Lumina displays real-time execution indicators:
+  ```text
+  ⚡ Searching the web for: "physical reporting date for first year in iiitdmj"
+  ✔ Found 5 sources
+  ```
+- **Natural Language AI Synthesis**: Tools automatically pass live data to Groq models for direct, natural language analysis and answers.
 
 ---
 
@@ -162,7 +166,7 @@ Lumina features a bespoke, minimalist terminal design system located in [`server
 ### UI Modules
 - **`theme.js`**: Semantic color tokens and symbols mapped directly to the palette specification.
 - **`components.js`**: Header banner, clean user cards, session headers, tool execution indicators, file tree visualizer, and setup command formatters.
-- **`markdown.js`**: Tailored `marked` + `marked-terminal` integration with clean indentation, syntax highlights, and custom borders.
+- **`markdown.js`**: Tailored `marked` + `marked-terminal` integration with clean indentation, syntax highlights, citation cleanup, and **smart table-to-bullet-list conversion** preventing broken ASCII grids across varying terminal window widths.
 
 ---
 
@@ -893,6 +897,14 @@ lumina wakeup
 ### 6. Portable CLI `.env` Resolution
 - **Problem**: Executing `lumina` outside `server/` caused `dotenv` to look in the current working directory, failing to find API keys.
 - **Solution**: Updated `db.js`, `main.js`, `wakeUp.js`, and `login.js` to resolve `.env` path using `path.resolve(__dirname, "../../../.env")` relative to script file locations.
+
+### 7. Empty Prompt & Offline Session Resilience
+- **Problem**: When the remote PostgreSQL database dropped or experienced high latency, DB-backed conversation message retrieval returned empty arrays, causing `AI_InvalidPromptError: messages must not be empty`.
+- **Solution**: Implemented an in-memory `activeMessages` session store in `chat-with-ai.js` and `chat-with-ai-tool.js` alongside cached user profiles in `~/.better-auth/token.json`, ensuring chat sessions operate seamlessly offline or during network latency.
+
+### 8. Terminal Table Wrapping & ASCII Grid Distortion
+- **Problem**: Rigid markdown tables with ASCII grid lines (`┌─┬─┐`, `├─┼─┤`, `│`) wrapped awkwardly across varying terminal window widths, splitting words across lines.
+- **Solution**: Implemented `convertTablesToLists()` in `markdown.js` to automatically convert Markdown tables into responsive bold bullet lists (`• **Parameter**: Value`), while instructing the system prompt to favor clean list formatting.
 
 ---
 

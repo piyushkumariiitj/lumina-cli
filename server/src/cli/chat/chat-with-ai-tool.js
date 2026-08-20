@@ -21,10 +21,12 @@ import {
   renderGoodbye 
 } from "../ui/components.js";
 import { theme } from "../ui/theme.js";
-import { config } from "../../config/groq.config.js";
 
 const aiService = new AIService();
 const chatService = new ChatService();
+
+// In-memory active message store to guarantee conversation state even when DB is slow or offline
+let activeMessages = [];
 
 async function getUserFromToken() {
   const token = await getStoredToken();
@@ -88,12 +90,20 @@ async function selectTools() {
 
 async function initConversation(userId, conversationId = null, mode = "tool") {
   let conversation = null;
+  activeMessages = [];
+
   try {
     conversation = await chatService.getOrCreateConversation(
       userId,
       conversationId,
       mode
     );
+    if (conversation?.messages?.length > 0) {
+      activeMessages = conversation.messages.map((m) => ({
+        role: m.role,
+        content: typeof m.content === "string" ? m.content : JSON.stringify(m.content),
+      }));
+    }
   } catch {
     conversation = { id: "local-tool-session", title: "Tool Calling", mode: "tool", messages: [] };
   }
@@ -106,8 +116,8 @@ async function initConversation(userId, conversationId = null, mode = "tool") {
     activeTools: enabledToolNames,
   });
 
-  if (conversation.messages?.length > 0) {
-    displayMessages(conversation.messages);
+  if (activeMessages.length > 0) {
+    displayMessages(activeMessages);
   }
 
   return conversation;
@@ -131,35 +141,20 @@ async function saveMessage(conversationId, role, content) {
   }
 }
 
-async function getAIResponse(conversationId) {
+async function getAIResponse(conversationId, userQuery = "") {
   const spinner = yoctoSpinner({
     text: theme.muted("Thinking..."),
     color: "yellow",
   }).start();
 
-  let aiMessages = [];
-  try {
-    const dbMessages = await chatService.getMessages(conversationId);
-    aiMessages = chatService.formatMessagesForAI(dbMessages);
-  } catch {
-    // Offline mode
-  }
-
   const tools = getEnabledTools();
 
   let fullResponse = "";
-  let isFirstChunk = true;
 
   try {
     const result = await aiService.sendMessage(
-      aiMessages,
+      activeMessages,
       (chunk) => {
-        if (isFirstChunk) {
-          spinner.stop();
-          console.log(`\n${theme.agentBold("Lumina:")}`);
-          isFirstChunk = false;
-        }
-        process.stdout.write(chunk);
         fullResponse += chunk;
       },
       tools,
@@ -167,19 +162,24 @@ async function getAIResponse(conversationId) {
         spinner.stop();
         renderToolExecution(
           toolCall.toolName || toolCall.name || "Tool",
-          toolCall.args || toolCall.input || {}
+          toolCall.args || toolCall.input || {},
+          userQuery
         );
+      },
+      (toolResult) => {
+        const out = toolResult.result !== undefined ? toolResult.result : toolResult.output;
+        renderToolResult(toolResult.toolName || "Tool", out, !out?.error);
       }
     );
 
-    if (result.toolResults && result.toolResults.length > 0) {
-      result.toolResults.forEach((tr) => {
-        const out = tr.result !== undefined ? tr.result : tr.output;
-        renderToolResult(tr.toolName || "Tool", out, !out?.error);
-      });
+    spinner.stop();
+
+    if (result.content) {
+      console.log(`\n${theme.agentBold("Lumina:")}\n${renderMarkdown(result.content)}\n`);
+    } else {
+      console.log("\n");
     }
 
-    console.log("\n");
     return result.content;
   } catch (error) {
     if (spinner) {
@@ -236,18 +236,19 @@ async function chatLoop(conversation) {
 
     try {
       setLastUserQuery(trimmed);
-      await saveMessage(conversation.id, "user", trimmed);
-      let msgCount = 1;
-      try {
-        const msgs = await chatService.getMessages(conversation.id);
-        msgCount = msgs.length;
-      } catch {}
 
-      const aiResponse = await getAIResponse(conversation.id);
+      // Always push to in-memory activeMessages so prompts are never empty
+      activeMessages.push({ role: "user", content: trimmed });
+
+      // Async DB write
+      saveMessage(conversation.id, "user", trimmed);
+
+      const aiResponse = await getAIResponse(conversation.id, trimmed);
 
       if (aiResponse) {
-        await saveMessage(conversation.id, "assistant", aiResponse);
-        await updateConversationTitle(conversation.id, trimmed, msgCount);
+        activeMessages.push({ role: "assistant", content: aiResponse });
+        saveMessage(conversation.id, "assistant", aiResponse);
+        updateConversationTitle(conversation.id, trimmed, activeMessages.length);
       }
     } catch (error) {
       renderError("Error", error.message);
