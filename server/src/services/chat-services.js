@@ -10,14 +10,17 @@ export class ChatService {
    * @param {string} title - Optional conversation title
    */
   async createConversation(userId, mode = "chat", title = null) {
-
-    return await prisma.conversation.create({
-      data: {
-        userId,
-        mode,
-        title: title || `New ${mode} conversation`,
-      },
-    });
+    try {
+      const res = await prisma.conversation.create({
+        data: {
+          userId,
+          mode,
+          title: title || `New ${mode} conversation`,
+        },
+      });
+      if (res) return res;
+    } catch {}
+    return { id: `local-${Date.now()}`, userId, mode, title: title || `New ${mode} conversation`, messages: [] };
   }
 
   /**

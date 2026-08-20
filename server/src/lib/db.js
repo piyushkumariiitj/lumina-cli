@@ -1,6 +1,3 @@
-import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import pg from "pg";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -13,29 +10,45 @@ dotenv.config({ path: envPath, quiet: true });
 
 const connectionString = process.env.DATABASE_URL;
 
-// Configure pg.Pool with keepAlive, idle timeouts, and connection lifecycle handlers
-// to prevent "ConnectionClosed" drops on Neon Serverless PostgreSQL
-const pool = new pg.Pool({
-  connectionString,
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
-  keepAlive: true,
-  ssl: {
-    rejectUnauthorized: false,
-  },
-});
+let prisma = null;
 
-// Gracefully handle idle client disconnects without throwing unhandled errors
-pool.on("error", (err) => {
-  // Silent recovery for idle background connection closures by Neon
-});
+if (connectionString) {
+  try {
+    const { PrismaClient } = await import("@prisma/client");
+    const { PrismaPg } = await import("@prisma/adapter-pg");
+    const { default: pg } = await import("pg");
 
-const adapter = new PrismaPg(pool);
+    const pool = new pg.Pool({
+      connectionString,
+      max: 10,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+      keepAlive: true,
+      ssl: {
+        rejectUnauthorized: false,
+      },
+    });
 
-const globalForPrisma = global;
-const prisma = globalForPrisma.prisma || new PrismaClient({ adapter });
+    pool.on("error", () => {});
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+    const adapter = new PrismaPg(pool);
+    prisma = new PrismaClient({ adapter });
+  } catch {
+    // Database adapter initialization failed or Prisma client not generated
+  }
+}
+
+// Fallback proxy so calling prisma operations never crashes the CLI in offline/client mode
+if (!prisma) {
+  const fallbackHandler = {
+    get() {
+      return new Proxy(() => Promise.resolve(null), fallbackHandler);
+    },
+    apply() {
+      return Promise.resolve(null);
+    },
+  };
+  prisma = new Proxy({}, fallbackHandler);
+}
 
 export default prisma;

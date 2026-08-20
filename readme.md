@@ -5,6 +5,9 @@
 </p>
 
 <p align="center">
+  <a href="https://www.npmjs.com/package/@piyushkumariiitj/lumina-cli">
+    <img src="https://img.shields.io/npm/v/@piyushkumariiitj/lumina-cli.svg?style=flat-square&color=CB3837&logo=npm" alt="npm version" />
+  </a>
   <img src="https://img.shields.io/badge/Node.js-18+-339933?style=flat-square&logo=node.js&logoColor=white" alt="Node.js" />
   <img src="https://img.shields.io/badge/AI%20Engine-Groq%20LPU-F55036?style=flat-square&logo=groq&logoColor=white" alt="Groq" />
   <img src="https://img.shields.io/badge/Vercel%20AI%20SDK-v7.0-000000?style=flat-square&logo=vercel&logoColor=white" alt="AI SDK" />
@@ -19,7 +22,67 @@
 
 ---
 
+## ⚡ Quick Start & Installation Guide
+
+You can run Lumina CLI on any PC or Mac in seconds using **NPM**.
+
+### 🚀 Option 1: Instant Run with `npx` (No Installation Needed)
+
+Run Lumina directly in your terminal without installing any global packages:
+
+```bash
+npx @piyushkumariiitj/lumina-cli@latest wakeup
+```
+
+---
+
+### 📦 Option 2: Global Installation (Recommended)
+
+Install the CLI globally on your machine to have the `lumina` command available in any terminal window:
+
+```bash
+# 1. Install globally via npm
+npm install -g @piyushkumariiitj/lumina-cli@latest
+
+# 2. Verify installation
+lumina --version
+```
+
+---
+
+### 🔐 Authenticating & Running (Step-by-Step)
+
+#### Step 1: Sign in with your GitHub account
+```bash
+lumina login
+```
+1. Lumina will display a unique 8-character device code (e.g. `ABCD-1234`).
+2. Press **Enter** to open the browser authorization page (`https://luminacli.vercel.app/device`).
+3. Click **Sign in with GitHub** and then **Approve Device**.
+4. Return to your terminal — it will automatically detect the approval and log you in!
+
+#### Step 2: Launch the Interactive AI Environment
+```bash
+lumina wakeup
+```
+Select from the interactive menu:
+- 💬 **Chat**: Conversational AI pair programmer with persistent PostgreSQL memory.
+- ⚡ **Tools**: Real-time tools (live Google search, sandboxed Python/JS code runner, git inspector, file reader).
+- 🤖 **Agent**: Autonomous project architect that generates complete multi-file applications and writes them to disk.
+- ⚙ **Status & Diagnostics**: Inspect active developer session, Groq models, and database status.
+
+#### Other CLI Commands:
+```bash
+lumina whoami   # Display your active developer profile
+lumina logout   # Clear stored credentials and sign out
+lumina --help   # Show the full command reference
+```
+
+---
+
 ## 📋 Table of Contents
+
+- [⚡ Quick Start & Installation Guide](#-quick-start--installation-guide)
 
 - [🚀 Overview](#-overview)
 - [🎯 Core Capabilities](#-core-capabilities)

@@ -1,20 +1,32 @@
 {
-  "name": "server",
-  "version": "1.0.0",
-  "description": "",
+  "name": "@piyushkumariiitj/lumina-cli",
+  "version": "1.0.1",
+  "description": "Lumina CLI - Autonomous AI-Powered Software Engineering Agent",
   "main": "src/index.js",
   "bin": {
-    "lumina": "./src/cli/main.js",
-    "orbitals": "./src/cli/main.js"
+    "lumina": "./src/cli/main.js"
   },
+  "files": [
+    "src",
+    "prisma",
+    "prisma.config.js"
+  ],
   "scripts": {
+    "postinstall": "prisma generate",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/index.js",
     "start": "node src/index.js"
   },
-  "keywords": [],
+  "keywords": [
+    "lumina",
+    "ai",
+    "cli",
+    "groq",
+    "agent",
+    "autonomous"
+  ],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "type": "module",
   "dependencies": {
     "@ai-sdk/groq": "^4.0.28",
@@ -35,12 +47,12 @@
     "marked-terminal": "^7.3.0",
     "open": "^11.0.1",
     "pg": "^8.13.3",
+    "prisma": "^7.9.1",
     "yocto-spinner": "^1.2.2",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14",
-    "prisma": "^7.9.1"
+    "nodemon": "^3.1.14"
   },
   "allowScripts": {
     "prisma@7.9.1": true,
