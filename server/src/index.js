@@ -6,7 +6,7 @@ import { auth } from "./lib/auth.js";
 
 const app = express();
 
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+const CLIENT_URL = (process.env.CLIENT_URL || "http://localhost:3000").replace(/\/+$/, "");
 
 // Configure CORS middleware supporting both local dev and production
 const allowedOrigins = Array.from(

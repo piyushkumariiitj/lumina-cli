@@ -4,7 +4,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from "./db.js";
 import { deviceAuthorization } from "better-auth/plugins";
 
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+const CLIENT_URL = (process.env.CLIENT_URL || "http://localhost:3000").replace(/\/+$/, "");
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,

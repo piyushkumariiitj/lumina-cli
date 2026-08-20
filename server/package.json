@@ -1,6 +1,6 @@
 {
   "name": "@piyushkumariiitj/lumina-cli",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Lumina CLI - Autonomous AI-Powered Software Engineering Agent",
   "main": "src/index.js",
   "bin": {
