@@ -34,7 +34,7 @@ function LoginFormContent() {
     <div className="flex flex-col gap-6 justify-center items-center ">
       <div className="flex flex-col items-center justify-center space-y-4">
         <Image src={"/login.svg"} alt="Login" height={500} width={500} priority />
-        <h1 className="text-6xl font-extrabold text-indigo-400">Welcome Back! to Orbital Cli</h1>
+        <h1 className="text-6xl font-extrabold text-indigo-400">Welcome Back! to Lumina CLI</h1>
         <p className="text-base font-medium text-zinc-400">Login to your account for allowing device flow</p>
       </div>
       <Card className="border-dashed border-2">

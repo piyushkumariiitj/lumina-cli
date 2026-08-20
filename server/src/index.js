@@ -6,11 +6,11 @@ import { auth } from "./lib/auth.js";
 
 const app = express();
 
-const CLIENT_URL = (process.env.CLIENT_URL || "http://localhost:3000").replace(/\/+$/, "");
+const CLIENT_URL = (process.env.CLIENT_URL || "https://luminacli.vercel.app").replace(/\/+$/, "");
 
 // Configure CORS middleware supporting both local dev and production
 const allowedOrigins = Array.from(
-  new Set(["http://localhost:3000", CLIENT_URL].filter(Boolean))
+  new Set(["http://localhost:3000", "https://luminacli.vercel.app", CLIENT_URL].filter(Boolean))
 );
 
 app.use(
@@ -30,6 +30,10 @@ app.use(
 app.all("/api/auth/*splat", toNodeHandler(auth));
 
 app.use(express.json());
+
+app.get("/", (req, res) => {
+  res.redirect(CLIENT_URL);
+});
 
 app.get("/api/me", async (req, res) => {
  	const session = await auth.api.getSession({

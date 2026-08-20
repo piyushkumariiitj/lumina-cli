@@ -18,6 +18,7 @@ import {
   clearStoredToken, 
   updateStoredUser 
 } from "../../../lib/token.js";
+import { resolveServerUrl } from "../../../lib/server-url.js";
 import { renderBanner, renderUserCard, renderGoodbye, renderError } from "../../ui/components.js";
 import { theme } from "../../ui/theme.js";
 
@@ -27,7 +28,6 @@ const envPath = path.resolve(__dirname, "../../../.env");
 
 dotenv.config({ path: envPath, quiet: true });
 
-const URL = process.env.BETTER_AUTH_URL || "http://localhost:3005";
 const CLIENT_ID = process.env.GITHUB_CLIENT_ID || "Ov23lic0GmWqY0cYavso";
 
 // ============================================
@@ -41,7 +41,7 @@ export async function loginAction(opts) {
     })
     .parse(opts);
 
-  const serverUrl = options.serverUrl || URL;
+  const serverUrl = await resolveServerUrl(options.serverUrl);
   const clientId = options.clientId || CLIENT_ID;
 
   renderBanner();
@@ -76,9 +76,10 @@ export async function loginAction(opts) {
     spinner.stop();
 
     if (error || !data) {
+      const errMsg = error?.error_description || error?.message || "Make sure auth server is running";
       renderError(
         "Failed to request device authorization code",
-        error?.error_description || error?.message || "Make sure auth server is running"
+        `${errMsg}\n\n  Target Server URL: ${serverUrl}\n  Tip: Ensure the Lumina backend is running or specify a server URL via --server-url <URL>`
       );
       process.exit(1);
     }
@@ -137,7 +138,24 @@ export async function loginAction(opts) {
     }
   } catch (err) {
     spinner.stop();
-    renderError("Login failed", err.message || String(err));
+    const errText = String(err?.message || err).toLowerCase();
+    const isFetchError = errText.includes("fetch failed") || errText.includes("econnrefused") || errText.includes("failed to fetch");
+    
+    if (isFetchError) {
+      renderError(
+        "Could not connect to Lumina Auth Server",
+        `Failed to reach backend auth server at: ${serverUrl}\n\n` +
+        `  Troubleshooting Steps:\n` +
+        `  1. Ensure the Lumina backend Express server is running.\n` +
+        `     Local Server: Start server by running 'node src/index.js' or 'npm run dev' inside server directory.\n` +
+        `  2. If using a deployed server, specify the URL:\n` +
+        `     lumina login --server-url <YOUR_BACKEND_URL>\n` +
+        `  3. Or set environment variable:\n` +
+        `     LUMINA_SERVER_URL=<YOUR_BACKEND_URL>`
+      );
+    } else {
+      renderError("Login failed", err.message || String(err));
+    }
     process.exit(1);
   }
 }
@@ -258,7 +276,7 @@ export async function whoamiAction(opts) {
   // 1. Try to fetch session from Auth Server via HTTP API (fast 600ms timeout)
   if (!user?.name || user.name === "Developer") {
     try {
-      const serverUrl = opts?.serverUrl || URL;
+      const serverUrl = await resolveServerUrl(opts?.serverUrl);
       const response = await fetch(`${serverUrl}/api/me`, {
         headers: {
           Authorization: `Bearer ${token.access_token}`,

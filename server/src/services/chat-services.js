@@ -1,5 +1,4 @@
 
-import { auth } from "../lib/auth.js";
 import prisma from "../lib/db.js";
 
 export class ChatService {

@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { Command } from "commander";
 import yoctoSpinner from "yocto-spinner";
 import { getStoredToken, updateStoredUser } from "../../../lib/token.js";
+import { resolveServerUrl } from "../../../lib/server-url.js";
 import prisma from "../../../lib/db.js";
 import { select, isCancel } from "@clack/prompts";
 import { startChat } from "../../chat/chat-with-ai.js";
@@ -15,11 +16,9 @@ import { theme } from "../../ui/theme.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const envPath = path.resolve(__dirname, "../../../../.env");
+const envPath = path.resolve(__dirname, "../../../.env");
 
 dotenv.config({ path: envPath, quiet: true });
-
-const URL = process.env.BETTER_AUTH_URL || "http://localhost:3005";
 
 export const wakeUpAction = async () => {
   renderBanner();
@@ -42,7 +41,8 @@ export const wakeUpAction = async () => {
   // 1. Try HTTP API (fast 600ms timeout)
   if (!user?.name || user.name === "Developer") {
     try {
-      const response = await fetch(`${URL}/api/me`, {
+      const serverUrl = await resolveServerUrl();
+      const response = await fetch(`${serverUrl}/api/me`, {
         headers: {
           Authorization: `Bearer ${token.access_token}`,
           Cookie: `better-auth.session_token=${token.access_token}`,
