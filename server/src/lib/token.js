@@ -30,11 +30,33 @@ export async function storeToken(token, user = null) {
         : token.expires_at || existing?.expires_at,
       created_at: existing?.created_at || new Date().toISOString(),
       user: user || token.user || existing?.user || { name: "Developer", email: "Authenticated Developer" },
+      groq_api_key: token.groq_api_key || existing?.groq_api_key,
     };
 
     await fs.writeFile(TOKEN_FILE, JSON.stringify(tokenData, null, 2), "utf-8");
     return true;
   } catch (error) {
+    return false;
+  }
+}
+
+export async function getStoredApiKey() {
+  try {
+    const token = await getStoredToken();
+    return token?.groq_api_key || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function storeApiKey(apiKey) {
+  try {
+    await fs.mkdir(CONFIG_DIR, { recursive: true });
+    let existing = await getStoredToken() || {};
+    existing.groq_api_key = apiKey;
+    await fs.writeFile(TOKEN_FILE, JSON.stringify(existing, null, 2), "utf-8");
+    return true;
+  } catch {
     return false;
   }
 }

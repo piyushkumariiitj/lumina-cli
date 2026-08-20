@@ -2,22 +2,60 @@ import { groq } from "@ai-sdk/groq";
 import { streamText } from "ai";
 import { config } from "../../config/groq.config.js";
 import chalk from "chalk";
+import { password, isCancel } from "@clack/prompts";
+import { getStoredApiKey, storeApiKey } from "../../lib/token.js";
 
 export class AIService {
   constructor() {
-    if (!config.groqApiKey) {
-      throw new Error(
-        "GROQ_API_KEY is not set in environment variables. Please add GROQ_API_KEY to your server/.env file."
-      );
+    this.apiKey = config.groqApiKey || process.env.GROQ_API_KEY || "";
+    this.model = null;
+    this.fallbackModel = null;
+
+    if (this.apiKey) {
+      this.model = groq(config.model, { apiKey: this.apiKey });
+      this.fallbackModel = groq(config.fallbackModel || "qwen/qwen3.6-27b", { apiKey: this.apiKey });
+    }
+  }
+
+  /**
+   * Ensure API key is available or prompt user interactively
+   */
+  async ensureApiKey() {
+    if (this.apiKey && this.model) {
+      return this.apiKey;
     }
 
-    this.model = groq(config.model, {
-      apiKey: config.groqApiKey,
+    // 1. Check stored token
+    const stored = await getStoredApiKey();
+    if (stored) {
+      this.apiKey = stored;
+      this.model = groq(config.model, { apiKey: this.apiKey });
+      this.fallbackModel = groq(config.fallbackModel || "qwen/qwen3.6-27b", { apiKey: this.apiKey });
+      return this.apiKey;
+    }
+
+    // 2. Prompt user interactively
+    console.log(chalk.cyan("\n🔑 Groq API key is required to power Lumina AI."));
+    console.log(chalk.gray("   Get a 100% free API key at: https://console.groq.com/keys\n"));
+
+    const enteredKey = await password({
+      message: "Enter your Groq API Key (starts with gsk_):",
+      validate(val) {
+        if (!val || val.trim().length === 0) return "API Key cannot be empty";
+      },
     });
 
-    this.fallbackModel = groq(config.fallbackModel || "qwen/qwen3.6-27b", {
-      apiKey: config.groqApiKey,
-    });
+    if (isCancel(enteredKey)) {
+      process.exit(0);
+    }
+
+    const trimmed = enteredKey.trim();
+    this.apiKey = trimmed;
+    await storeApiKey(trimmed);
+
+    this.model = groq(config.model, { apiKey: this.apiKey });
+    this.fallbackModel = groq(config.fallbackModel || "qwen/qwen3.6-27b", { apiKey: this.apiKey });
+    return this.apiKey;
   }
 
   /**
@@ -100,6 +138,7 @@ export class AIService {
     onToolResult = undefined,
     isFallback = false
   ) {
+    await this.ensureApiKey();
     try {
       const activeModel = isFallback ? this.fallbackModel : this.model;
       const modelName = isFallback ? config.fallbackModel : config.model;

@@ -1,6 +1,6 @@
 {
   "name": "@piyushkumariiitj/lumina-cli",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Lumina CLI - Autonomous AI-Powered Software Engineering Agent",
   "main": "src/index.js",
   "bin": {
@@ -43,7 +43,7 @@
     "express": "^5.2.1",
     "figlet": "^1.11.4",
     "groq-sdk": "^1.5.0",
-    "marked": "^18.0.9",
+    "marked": "^15.0.12",
     "marked-terminal": "^7.3.0",
     "open": "^11.0.1",
     "pg": "^8.13.3",
