@@ -4,6 +4,8 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from "./db.js";
 import { deviceAuthorization } from "better-auth/plugins";
 
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
   database: prismaAdapter(prisma, {
@@ -11,10 +13,10 @@ export const auth = betterAuth({
   }),
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3005",
   basePath: "/api/auth",
-  trustedOrigins: ["http://localhost:3000"],
+  trustedOrigins: Array.from(new Set(["http://localhost:3000", CLIENT_URL].filter(Boolean))),
  plugins: [
     deviceAuthorization({ 
-      verificationUri: "http://localhost:3000/device", 
+      verificationUri: `${CLIENT_URL}/device`, 
     }), 
   ],
   socialProviders: {

@@ -11,9 +11,13 @@ function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrlParam = searchParams.get("callbackUrl");
+  const currentOrigin = typeof window !== "undefined" && window.location.origin
+    ? window.location.origin
+    : (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000");
+
   const targetCallback = callbackUrlParam 
-    ? (callbackUrlParam.startsWith("http") ? callbackUrlParam : `http://localhost:3000${callbackUrlParam}`)
-    : "http://localhost:3000";
+    ? (callbackUrlParam.startsWith("http") ? callbackUrlParam : `${currentOrigin}${callbackUrlParam}`)
+    : currentOrigin;
 
   const [isLoading, setIsLoading] = useState(false);
 

@@ -6,18 +6,28 @@ import { auth } from "./lib/auth.js";
 
 const app = express();
 
-// Configure CORS middleware
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+
+// Configure CORS middleware supporting both local dev and production
+const allowedOrigins = Array.from(
+  new Set(["http://localhost:3000", CLIENT_URL].filter(Boolean))
+);
+
 app.use(
   cors({
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST", "PUT", "DELETE"], // Specify allowed HTTP methods
-    credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like CLI, curl, or mobile) or if in allowed list
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
   })
 );
 
 app.all("/api/auth/*splat", toNodeHandler(auth));
-
-
 
 app.use(express.json());
 
@@ -28,10 +38,10 @@ app.get("/api/me", async (req, res) => {
 	return res.json(session);
 });
 
-app.get("/device", async(req,res)=>{
-	const{user_code}=req.query
-  res.redirect(`http://localhost:3000/device?user_code=${user_code || ""}`)
-})
+app.get("/device", async (req, res) => {
+	const { user_code } = req.query;
+  res.redirect(`${CLIENT_URL}/device?user_code=${user_code || ""}`);
+});
 
 app.get("/health", (req, res) => {
   res.send("OK");
