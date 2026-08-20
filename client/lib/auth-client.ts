@@ -25,4 +25,4 @@ export const authClient = createAuthClient({
     plugins: [
         deviceAuthorizationClient(),
     ]
-});
+});
