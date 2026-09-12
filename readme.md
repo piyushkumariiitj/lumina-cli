@@ -54,9 +54,9 @@ lumina login
 
 ---
 
-### 3. Launch Lumina
+### 3. Launch Lumina (Zero-Config AI)
 
-Launch the interactive AI engineering environment:
+Launch the interactive AI engineering environment — no API keys or local database setup required:
 
 ```bash
 lumina wakeup
@@ -162,8 +162,8 @@ Lumina separates end-user client execution from production cloud infrastructure:
 └────────────────────────────────────────────────────────┘
 ```
 
-- **Zero Client-Side Secrets**: End users do not need to configure PostgreSQL, Neon DB, GitHub OAuth applications, or server secrets.
-- **Production Backend by Default**: The CLI automatically connects to Lumina's production cloud infrastructure.
+- **Zero Client-Side Secrets & Zero API Key Setup**: End users do not need to configure API keys, PostgreSQL, Neon DB, GitHub OAuth applications, or `.env` files. Authentication via `lumina login` automatically provides secure access to the backend AI engine.
+- **Production Backend by Default**: The CLI automatically connects to Lumina's cloud infrastructure (`https://lumina-cli.onrender.com`).
 - **Local Tool Sandboxing**: Execution tools (like Python/JS snippets or reading workspace files) execute securely on the developer's local machine.
 
 ---
