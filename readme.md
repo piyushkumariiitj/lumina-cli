@@ -63,7 +63,7 @@ lumina wakeup
 ```
 
 ```text
-✦ Lumina CLI v1.0.4 • openai/gpt-oss-120b
+✦ Lumina CLI v1.0.5 • openai/gpt-oss-120b
 
   ✦ Developer <Active User>
   • Engine: openai/gpt-oss-120b  • Status: Active
