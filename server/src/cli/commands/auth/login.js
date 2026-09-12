@@ -342,7 +342,7 @@ export async function whoamiAction(opts) {
 // COMMANDER SETUP
 export const login = new Command("login")
   .description("Login to Lumina CLI with GitHub")
-  .option("--server-url <url>", "Server URL", URL)
+  .option("--server-url <url>", "Server URL")
   .option("--client-id <id>", "The OAuth client ID", CLIENT_ID)
   .action(loginAction);
 
@@ -352,5 +352,5 @@ export const logout = new Command("logout")
 
 export const whoami = new Command("whoami")
   .description("Show current authenticated developer profile")
-  .option("--server-url <url>", "The Better Auth server URL", URL)
+  .option("--server-url <url>", "The Better Auth server URL")
   .action(whoamiAction);
