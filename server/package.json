@@ -1,6 +1,6 @@
 {
   "name": "@piyushkumariiitj/lumina-cli",
-  "version": "1.0.7",
+  "version": "1.0.10",
   "description": "Lumina CLI - Autonomous AI-Powered Software Engineering Agent",
   "main": "src/index.js",
   "bin": {
@@ -34,7 +34,7 @@
   "bugs": {
     "url": "https://github.com/piyushkumariiitj/lumina-cli/issues"
   },
-  "homepage": "https://luminacli.vercel.app",
+  "homepage": "https://luminacli.netlify.app",
   "engines": {
     "node": ">=18.0.0"
   },
