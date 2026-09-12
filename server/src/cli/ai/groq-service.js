@@ -1,4 +1,4 @@
-import { groq } from "@ai-sdk/groq";
+import { createGroq } from "@ai-sdk/groq";
 import { streamText } from "ai";
 import { config } from "../../config/groq.config.js";
 import chalk from "chalk";
@@ -7,13 +7,16 @@ import { getStoredApiKey, storeApiKey } from "../../lib/token.js";
 
 export class AIService {
   constructor() {
-    this.apiKey = config.groqApiKey || process.env.GROQ_API_KEY || "";
+    this.apiKey = (config.groqApiKey || process.env.GROQ_API_KEY || "").trim();
     this.model = null;
     this.fallbackModel = null;
+    this.groqProvider = null;
 
     if (this.apiKey) {
-      this.model = groq(config.model, { apiKey: this.apiKey });
-      this.fallbackModel = groq(config.fallbackModel || "openai/gpt-oss-20b", { apiKey: this.apiKey });
+      process.env.GROQ_API_KEY = this.apiKey;
+      this.groqProvider = createGroq({ apiKey: this.apiKey });
+      this.model = this.groqProvider(config.model);
+      this.fallbackModel = this.groqProvider(config.fallbackModel || "openai/gpt-oss-20b");
     }
   }
 
@@ -26,22 +29,22 @@ export class AIService {
     if (envKey) {
       if (this.apiKey !== envKey || !this.model) {
         this.apiKey = envKey;
-        this.model = groq(config.model, { apiKey: this.apiKey });
-        this.fallbackModel = groq(config.fallbackModel || "openai/gpt-oss-20b", { apiKey: this.apiKey });
+        process.env.GROQ_API_KEY = this.apiKey;
+        this.groqProvider = createGroq({ apiKey: this.apiKey });
+        this.model = this.groqProvider(config.model);
+        this.fallbackModel = this.groqProvider(config.fallbackModel || "openai/gpt-oss-20b");
       }
       return this.apiKey;
     }
 
-    if (this.apiKey && this.model) {
-      return this.apiKey;
-    }
-
     // 2. Check stored token (~/.better-auth/token.json)
-    const stored = (await getStoredApiKey() || "").trim();
+    const stored = ((await getStoredApiKey()) || "").trim();
     if (stored) {
       this.apiKey = stored;
-      this.model = groq(config.model, { apiKey: this.apiKey });
-      this.fallbackModel = groq(config.fallbackModel || "openai/gpt-oss-20b", { apiKey: this.apiKey });
+      process.env.GROQ_API_KEY = this.apiKey;
+      this.groqProvider = createGroq({ apiKey: this.apiKey });
+      this.model = this.groqProvider(config.model);
+      this.fallbackModel = this.groqProvider(config.fallbackModel || "openai/gpt-oss-20b");
       return this.apiKey;
     }
 
@@ -53,6 +56,7 @@ export class AIService {
       message: "Enter your Groq API Key (starts with gsk_):",
       validate(val) {
         if (!val || val.trim().length === 0) return "API Key cannot be empty";
+        if (!val.trim().startsWith("gsk_")) return "Groq API key must start with 'gsk_'";
       },
     });
 
@@ -62,10 +66,12 @@ export class AIService {
 
     const trimmed = enteredKey.trim();
     this.apiKey = trimmed;
+    process.env.GROQ_API_KEY = this.apiKey;
     await storeApiKey(trimmed);
 
-    this.model = groq(config.model, { apiKey: this.apiKey });
-    this.fallbackModel = groq(config.fallbackModel || "qwen/qwen3.6-27b", { apiKey: this.apiKey });
+    this.groqProvider = createGroq({ apiKey: this.apiKey });
+    this.model = this.groqProvider(config.model);
+    this.fallbackModel = this.groqProvider(config.fallbackModel || "openai/gpt-oss-20b");
     return this.apiKey;
   }
 

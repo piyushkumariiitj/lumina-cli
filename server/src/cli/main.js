@@ -18,7 +18,7 @@ async function main() {
   const program = new Command("lumina");
 
   program
-    .version("1.0.5", "-v, --version", "Output current version of Lumina CLI")
+    .version("1.0.6", "-v, --version", "Output current version of Lumina CLI")
     .description("Lumina CLI - Autonomous AI-Powered Software Engineering Agent")
     .helpOption("-h, --help", "Display help menu with available commands");
 
