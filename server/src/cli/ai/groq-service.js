@@ -3,7 +3,8 @@ import { streamText } from "ai";
 import { config } from "../../config/groq.config.js";
 import chalk from "chalk";
 import { password, isCancel } from "@clack/prompts";
-import { getStoredApiKey, storeApiKey } from "../../lib/token.js";
+import { getStoredApiKey, storeApiKey, getStoredToken } from "../../lib/token.js";
+import { resolveServerUrl } from "../../lib/server-url.js";
 
 export class AIService {
   constructor() {
@@ -24,7 +25,7 @@ export class AIService {
    * Ensure API key is available or prompt user interactively
    */
   async ensureApiKey() {
-    // 1. Always prioritize active environment variables (e.g. from server/.env)
+    // 1. Always prioritize active environment variables (e.g. from local server/.env or CLI env)
     const envKey = (process.env.GROQ_API_KEY || config.groqApiKey || "").trim();
     if (envKey) {
       if (this.apiKey !== envKey || !this.model) {
@@ -37,7 +38,35 @@ export class AIService {
       return this.apiKey;
     }
 
-    // 2. Check stored token (~/.better-auth/token.json)
+    // 2. Automatically retrieve AI configuration from backend server for logged-in users
+    try {
+      const token = await getStoredToken();
+      if (token?.access_token) {
+        const serverUrl = await resolveServerUrl();
+        const res = await fetch(`${serverUrl}/api/ai/config`, {
+          headers: {
+            Authorization: `Bearer ${token.access_token}`,
+            Cookie: `better-auth.session_token=${token.access_token}`,
+          },
+          signal: AbortSignal.timeout(3500),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.apiKey && data.apiKey.trim()) {
+            this.apiKey = data.apiKey.trim();
+            process.env.GROQ_API_KEY = this.apiKey;
+            this.groqProvider = createGroq({ apiKey: this.apiKey });
+            this.model = this.groqProvider(data.model || config.model);
+            this.fallbackModel = this.groqProvider(data.fallbackModel || config.fallbackModel || "openai/gpt-oss-20b");
+            return this.apiKey;
+          }
+        }
+      }
+    } catch {
+      // Backend fetch failed or server offline, proceed to local fallbacks
+    }
+
+    // 3. Check stored key in local token (~/.better-auth/token.json)
     const stored = ((await getStoredApiKey()) || "").trim();
     if (stored) {
       this.apiKey = stored;
@@ -48,7 +77,7 @@ export class AIService {
       return this.apiKey;
     }
 
-    // 3. Prompt user interactively
+    // 4. Prompt user interactively as a last resort
     console.log(chalk.cyan("\n🔑 Groq API key is required to power Lumina AI."));
     console.log(chalk.gray("   Get a 100% free API key at: https://console.groq.com/keys\n"));
 

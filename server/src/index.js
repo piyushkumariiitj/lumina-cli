@@ -42,6 +42,26 @@ app.get("/api/me", async (req, res) => {
 	return res.json(session);
 });
 
+app.get("/api/ai/config", async (req, res) => {
+  try {
+    const session = await auth.api.getSession({
+      headers: fromNodeHeaders(req.headers),
+    });
+
+    if (!session?.user) {
+      return res.status(401).json({ error: "Unauthorized. Please run 'lumina login' first." });
+    }
+
+    return res.json({
+      apiKey: process.env.GROQ_API_KEY || "",
+      model: process.env.LUMINA_MODEL || "openai/gpt-oss-120b",
+      fallbackModel: process.env.LUMINA_FALLBACK_MODEL || "openai/gpt-oss-20b",
+    });
+  } catch (err) {
+    return res.status(500).json({ error: "Failed to retrieve AI configuration." });
+  }
+});
+
 app.get("/device", async (req, res) => {
 	const { user_code } = req.query;
   res.redirect(`${CLIENT_URL}/device?user_code=${user_code || ""}`);
