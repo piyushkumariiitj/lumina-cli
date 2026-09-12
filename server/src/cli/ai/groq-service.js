@@ -13,7 +13,7 @@ export class AIService {
 
     if (this.apiKey) {
       this.model = groq(config.model, { apiKey: this.apiKey });
-      this.fallbackModel = groq(config.fallbackModel || "qwen/qwen3.6-27b", { apiKey: this.apiKey });
+      this.fallbackModel = groq(config.fallbackModel || "openai/gpt-oss-20b", { apiKey: this.apiKey });
     }
   }
 
@@ -21,20 +21,31 @@ export class AIService {
    * Ensure API key is available or prompt user interactively
    */
   async ensureApiKey() {
+    // 1. Always prioritize active environment variables (e.g. from server/.env)
+    const envKey = (process.env.GROQ_API_KEY || config.groqApiKey || "").trim();
+    if (envKey) {
+      if (this.apiKey !== envKey || !this.model) {
+        this.apiKey = envKey;
+        this.model = groq(config.model, { apiKey: this.apiKey });
+        this.fallbackModel = groq(config.fallbackModel || "openai/gpt-oss-20b", { apiKey: this.apiKey });
+      }
+      return this.apiKey;
+    }
+
     if (this.apiKey && this.model) {
       return this.apiKey;
     }
 
-    // 1. Check stored token
-    const stored = await getStoredApiKey();
+    // 2. Check stored token (~/.better-auth/token.json)
+    const stored = (await getStoredApiKey() || "").trim();
     if (stored) {
       this.apiKey = stored;
       this.model = groq(config.model, { apiKey: this.apiKey });
-      this.fallbackModel = groq(config.fallbackModel || "qwen/qwen3.6-27b", { apiKey: this.apiKey });
+      this.fallbackModel = groq(config.fallbackModel || "openai/gpt-oss-20b", { apiKey: this.apiKey });
       return this.apiKey;
     }
 
-    // 2. Prompt user interactively
+    // 3. Prompt user interactively
     console.log(chalk.cyan("\n🔑 Groq API key is required to power Lumina AI."));
     console.log(chalk.gray("   Get a 100% free API key at: https://console.groq.com/keys\n"));
 
@@ -70,10 +81,16 @@ export class AIService {
       status === 401 ||
       errorMsg.includes("401") ||
       errorMsg.toLowerCase().includes("invalid api key") ||
+      errorMsg.toLowerCase().includes("invalid_api_key") ||
       errorMsg.toLowerCase().includes("unauthorized")
     ) {
+      // Clear cached bad key from token file
+      storeApiKey("").catch(() => {});
+      this.apiKey = "";
+      this.model = null;
+
       return new Error(
-        "Invalid Groq API Key. Please check your GROQ_API_KEY in the server/.env file."
+        "Invalid Groq API Key. Please verify your GROQ_API_KEY in server/.env or obtain a new free key at https://console.groq.com/keys"
       );
     }
 

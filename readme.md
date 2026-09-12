@@ -197,13 +197,14 @@ Arm Lumina with specific developer tools via interactive multi-select:
 ---
 
 ### 3. 🤖 Autonomous Agent Mode (Project Architect & Generator)
-Give Lumina a high-level application idea (e.g., *"Build a REST API with Express, JWT auth, and Prisma"* or *"Create a modern React portfolio with Tailwind"*):
+Give Lumina a high-level application description (e.g., *"Build a modern portfolio website for a IIITDMJ student"* or *"Build a full-stack REST API with Express, JWT auth, and Prisma"*):
 
-1. **Structured Schema Validation**: Uses Vercel AI SDK `generateObject` with Zod schema (`ApplicationSchema`).
-2. **Architecture Summary**: Single-line summary of generated project name, description, and file count.
-3. **File Tree Display**: Visual directory tree with syntax-specific file icons (`📦`, `⚛️`, `🟨`, `🐍`, `🎨`, `📝`).
-4. **Direct Disk I/O**: Automatically creates the directory tree and writes complete, un-truncated files to your working directory.
-5. **Next Steps Box**: Outputs runnable commands (`cd app-name && npm install && npm run dev`).
+1. **Autonomous Architecture Design**: Analyzes requirements and drafts a comprehensive multi-file architecture.
+2. **Resilient AI Generation Engine**: Generates complete, un-truncated code files using Groq models (`openai/gpt-oss-120b` & `openai/gpt-oss-20b`) with hidden reasoning allocation to maximize output token budgets.
+3. **Structured Schema Validation**: Validates the payload against Zod's `ApplicationSchema` using `extractJsonFromText()`, ensuring valid kebab-case folder names and file arrays.
+4. **Project Visual Tree**: Prints a beautiful ASCII directory tree in the terminal with syntax-specific file icons (`🌐`, `⚛️`, `🟨`, `📦`, `🎨`, `📝`).
+5. **Direct Disk I/O & Scaffolding**: Automatically creates folders and writes all files directly to your current working directory without manual copy-pasting.
+6. **Executable Next Steps**: Prints instant copy-pasteable launch commands (e.g. `open index.html` or `npm install && npm run dev`).
 
 ---
 
@@ -235,21 +236,28 @@ Lumina features a bespoke, minimalist terminal design system located in [`server
 
 ## ⚡ Groq AI Engine & Multi-Model Resilience
 
-Lumina CLI leverages Groq's high-speed inference engine configured in [`server/src/config/groq.config.js`](file:///d:/lumina/server/src/config/groq.config.js) and [`server/src/cli/ai/groq-service.js`](file:///d:/lumina/server/src/cli/ai/groq-service.js):
+Lumina CLI leverages Groq's high-speed LPU inference engine configured in [`server/src/config/groq.config.js`](file:///d:/lumina/server/src/config/groq.config.js) and [`server/src/cli/ai/groq-service.js`](file:///d:/lumina/server/src/cli/ai/groq-service.js):
 
-### 1. Configuration
+### 1. Configuration & Dynamic Resolution
 ```javascript
 export const config = {
-  groqApiKey: process.env.GROQ_API_KEY || process.env.GROQ_KEY || '',
-  model: process.env.LUMINA_MODEL || 'openai/gpt-oss-120b',
-  fallbackModel: process.env.LUMINA_FALLBACK_MODEL || 'qwen/qwen3.6-27b',
+  get groqApiKey() {
+    return process.env.GROQ_API_KEY || process.env.GROQ_KEY || '';
+  },
+  get model() {
+    return process.env.LUMINA_MODEL || 'openai/gpt-oss-120b';
+  },
+  get fallbackModel() {
+    return process.env.LUMINA_FALLBACK_MODEL || 'openai/gpt-oss-20b';
+  },
 };
 ```
 
 ### 2. Multi-Tier Error & Fallback Handling
-- **Rate Limit / Decommissioning Auto-Fallback**: If the primary model hits a rate limit (429) or is unavailable (404), the `AIService` automatically falls back to `qwen/qwen3.6-27b` without dropping the user's prompt.
-- **Reasoning Configuration**: Configured with `reasoningFormat: "hidden"` and `reasoningEffort: "low"` for maximum throughput.
+- **Rate Limit / Decommissioning Auto-Fallback**: If the primary model hits a rate limit (429) or token capacity issues, the `AIService` automatically replays the prompt through the fallback model (`openai/gpt-oss-20b`) without dropping the user's conversation state.
+- **Reasoning Budget Optimization**: Configured with `reasoningFormat: "hidden"` and `reasoningEffort: "low"` to allocate max completion tokens (8,192 tokens) directly to full application code generation.
 - **Empty Stream Guard**: Detects tool-only executions and synthesizes clean structured markdown from tool outputs.
+- **Automatic 401 Cache Purge**: Automatically clears invalid keys from `~/.better-auth/token.json` if a 401 Unauthorized occurs, prompting for a fresh key.
 
 ---
 
@@ -288,7 +296,7 @@ graph TD
 
     subgraph GroqCloud ["Groq Cloud Inference"]
         PrimaryModel["Primary Model (openai/gpt-oss-120b)"]
-        FallbackModel["Fallback Model (qwen/qwen3.6-27b)"]
+        FallbackModel["Fallback Model (openai/gpt-oss-20b)"]
     end
 
     subgraph Server ["Express 5 Backend Server (Port 3005)"]
@@ -864,11 +872,19 @@ BETTER_AUTH_URL=http://localhost:3005
 GITHUB_CLIENT_ID=your_github_client_id
 GITHUB_CLIENT_SECRET=your_github_client_secret
 
-# Groq AI Inference Engine Config
+# Groq AI Inference Engine Config (Get free key at: https://console.groq.com/keys)
 GROQ_API_KEY=gsk_your_groq_api_key_here
 LUMINA_MODEL=openai/gpt-oss-120b
-LUMINA_FALLBACK_MODEL=qwen/qwen3.6-27b
+LUMINA_FALLBACK_MODEL=openai/gpt-oss-20b
+
+# Web Frontend URL
+CLIENT_URL=http://localhost:3000
 ```
+
+> [!TIP]
+> **Dual Local & Production OAuth Support**: You can use the same GitHub OAuth App for both localhost and your deployed app (Render/Vercel). In [GitHub Developer Settings → OAuth Apps](https://github.com/settings/developers), add both:
+> - `http://localhost:3005/api/auth/callback/github` (Local)
+> - `https://lumina-cli.onrender.com/api/auth/callback/github` (Production)
 
 ---
 
@@ -886,9 +902,9 @@ cd ../client && npm install
 ### 2. Link CLI Binary Globally
 ```bash
 cd server
-npm link
+npm link --force
 ```
-*Now the `lumina` command is available everywhere on your machine.*
+*Now the `lumina` command is available everywhere on your machine (using `--force` overwrites any previous global installs).*
 
 ### 3. Push Database Schema
 ```bash
@@ -916,6 +932,7 @@ In a new terminal window:
 lumina login
 lumina wakeup
 ```
+*(Or run directly via `node server/src/cli/main.js wakeup`)*
 
 ---
 
@@ -957,9 +974,9 @@ lumina wakeup
 - **Problem**: Background Prisma connection pools kept terminal commands hanging after finishing.
 - **Solution**: Added `signal: AbortSignal.timeout(600)` to API fetches and explicit `process.exit(0)` on command termination.
 
-### 6. Portable CLI `.env` Resolution
-- **Problem**: Executing `lumina` outside `server/` caused `dotenv` to look in the current working directory, failing to find API keys.
-- **Solution**: Updated `db.js`, `main.js`, `wakeUp.js`, and `login.js` to resolve `.env` path using `path.resolve(__dirname, "../../../.env")` relative to script file locations.
+### 6. Portable CLI `.env` Resolution & Dynamic Config Getters
+- **Problem**: Executing `lumina` outside `server/` caused `dotenv` to look in the current working directory, failing to find API keys or freezing empty config at module import.
+- **Solution**: Updated `groq.config.js`, `db.js`, `main.js`, and `wakeUp.js` to resolve `.env` paths relative to `import.meta.url` with dynamic getters for `process.env`.
 
 ### 7. Empty Prompt & Offline Session Resilience
 - **Problem**: When the remote PostgreSQL database dropped or experienced high latency, DB-backed conversation message retrieval returned empty arrays, causing `AI_InvalidPromptError: messages must not be empty`.
@@ -968,6 +985,18 @@ lumina wakeup
 ### 8. Terminal Table Wrapping & ASCII Grid Distortion
 - **Problem**: Rigid markdown tables with ASCII grid lines (`┌─┬─┐`, `├─┼─┤`, `│`) wrapped awkwardly across varying terminal window widths, splitting words across lines.
 - **Solution**: Implemented `convertTablesToLists()` in `markdown.js` to automatically convert Markdown tables into responsive bold bullet lists (`• **Parameter**: Value`), while instructing the system prompt to favor clean list formatting.
+
+### 9. Groq Schema Generation (`json_validate_failed`) in Agent Mode
+- **Problem**: `generateObject` with strict grammar schema (`response_format: { type: "json_schema" }`) crashed on Groq when generating multiline escaped code files with `json_validate_failed`.
+- **Solution**: Enhanced `agent.config.js` to use structured AI text generation with resilient JSON extraction (`extractJsonFromText`), Zod validation, and automatic multi-tier model fallback.
+
+### 10. Dual Local & Cloud GitHub OAuth Redirect Support
+- **Problem**: `The redirect_uri is not associated with this application` error occurred when authenticating locally because the GitHub OAuth app only contained cloud URLs.
+- **Solution**: Configured GitHub OAuth App with multiple authorization callback URLs for both `http://localhost:3005/api/auth/callback/github` (local) and `https://lumina-cli.onrender.com/api/auth/callback/github` (production).
+
+### 11. Cached Key Invalidation & Auto Recovery
+- **Problem**: If an expired or invalid API key was stored in `~/.better-auth/token.json`, the CLI would reuse the invalid key and fail repeatedly with 401 errors.
+- **Solution**: Added dynamic runtime key resolution in `AIService.ensureApiKey()` to always prioritize active `.env` variables and automatically purge bad cached keys on 401 errors.
 
 ---
 
@@ -978,3 +1007,4 @@ B.Tech Student @ IIITDM Jabalpur
 GitHub: [@piyushkumariiitj](https://github.com/piyushkumariiitj)
 
 Distributed under the [MIT License](LICENSE).
+
