@@ -5,6 +5,13 @@ import os from "node:os";
 export const CONFIG_DIR = path.join(os.homedir(), ".better-auth");
 export const TOKEN_FILE = path.join(CONFIG_DIR, "token.json");
 
+// The file holds a session token (and possibly an API key): keep it owner-only.
+async function writeTokenFile(data) {
+  await fs.mkdir(CONFIG_DIR, { recursive: true, mode: 0o700 });
+  await fs.writeFile(TOKEN_FILE, JSON.stringify(data, null, 2), { encoding: "utf-8", mode: 0o600 });
+  await fs.chmod(TOKEN_FILE, 0o600).catch(() => {}); // tighten files created by older versions
+}
+
 export async function getStoredToken() {
   try {
     const data = await fs.readFile(TOKEN_FILE, "utf-8");
@@ -17,8 +24,6 @@ export async function getStoredToken() {
 
 export async function storeToken(token, user = null) {
   try {
-    await fs.mkdir(CONFIG_DIR, { recursive: true });
-
     const existing = await getStoredToken();
     const tokenData = {
       access_token: token.access_token,
@@ -33,7 +38,7 @@ export async function storeToken(token, user = null) {
       groq_api_key: token.groq_api_key || existing?.groq_api_key,
     };
 
-    await fs.writeFile(TOKEN_FILE, JSON.stringify(tokenData, null, 2), "utf-8");
+    await writeTokenFile(tokenData);
     return true;
   } catch (error) {
     return false;
@@ -51,10 +56,9 @@ export async function getStoredApiKey() {
 
 export async function storeApiKey(apiKey) {
   try {
-    await fs.mkdir(CONFIG_DIR, { recursive: true });
     let existing = await getStoredToken() || {};
     existing.groq_api_key = apiKey;
-    await fs.writeFile(TOKEN_FILE, JSON.stringify(existing, null, 2), "utf-8");
+    await writeTokenFile(existing);
     return true;
   } catch {
     return false;
@@ -66,7 +70,7 @@ export async function updateStoredUser(user) {
     const token = await getStoredToken();
     if (token) {
       token.user = user;
-      await fs.writeFile(TOKEN_FILE, JSON.stringify(token, null, 2), "utf-8");
+      await writeTokenFile(token);
     }
   } catch {
     // Ignore update failures

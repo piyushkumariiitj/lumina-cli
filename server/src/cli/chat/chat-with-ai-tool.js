@@ -1,4 +1,4 @@
-import { text, isCancel, multiselect } from "@clack/prompts";
+import { text, isCancel, multiselect, confirm } from "@clack/prompts";
 import yoctoSpinner from "yocto-spinner";
 import { AIService } from "../ai/groq-service.js";
 import { ChatService } from "../../services/chat-services.js";
@@ -10,7 +10,7 @@ import {
   enableTools, 
   getEnabledToolNames,
   resetTools,
-  setLastUserQuery 
+  setCodeExecutionApprover,
 } from "../../config/tool.config.js";
 import { renderMarkdown } from "../ui/markdown.js";
 import { 
@@ -149,6 +149,15 @@ async function getAIResponse(conversationId, userQuery = "") {
 
   const tools = getEnabledTools();
 
+  // Model-written code only runs after the user has seen it and agreed.
+  setCodeExecutionApprover(async (language, code) => {
+    spinner.stop();
+    console.log(`\n${theme.warning(`The AI wants to run this ${language} code on your machine:`)}`);
+    console.log(`${theme.toolDim(code)}\n`);
+    const ok = await confirm({ message: "Run it?", initialValue: false });
+    return !isCancel(ok) && ok === true;
+  });
+
   let fullResponse = "";
 
   try {
@@ -235,8 +244,6 @@ async function chatLoop(conversation) {
     }
 
     try {
-      setLastUserQuery(trimmed);
-
       // Always push to in-memory activeMessages so prompts are never empty
       activeMessages.push({ role: "user", content: trimmed });
 

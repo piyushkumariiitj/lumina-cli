@@ -8,6 +8,9 @@ import { useState, useEffect, Suspense } from "react";
 import { CheckCircle, XCircle, Smartphone, ShieldCheck, ShieldAlert, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
+const errorMessage = (err: unknown, fallback: string) =>
+    err instanceof Error && err.message ? err.message : fallback;
+
 function DeviceApprovalContent() {
     const { data, isPending: isSessionPending } = authClient.useSession();
     const router = useRouter();
@@ -51,7 +54,7 @@ function DeviceApprovalContent() {
                 });
 
                 if (res.error) {
-                    const errorMsg = res.error.error_description || (res.error as any).message || "Invalid or expired authorization code";
+                    const errorMsg = res.error.error_description || res.error.statusText || "Invalid or expired authorization code";
                     setCodeError(errorMsg);
                 } else if (res.data?.status) {
                     if (res.data.status === "approved") {
@@ -60,8 +63,8 @@ function DeviceApprovalContent() {
                         setAuthStatus("denied");
                     }
                 }
-            } catch (err: any) {
-                setCodeError(err?.message || "Failed to verify device code.");
+            } catch (err) {
+                setCodeError(errorMessage(err, "Failed to verify device code."));
             } finally {
                 setIsVerifying(false);
             }
@@ -87,14 +90,14 @@ function DeviceApprovalContent() {
             toast.dismiss("approval-toast");
 
             if (res.error) {
-                toast.error(res.error.error_description || (res.error as any).message || "Failed to approve device");
+                toast.error(res.error.error_description || res.error.statusText || "Failed to approve device");
             } else {
                 toast.success("Device approved successfully!");
                 setAuthStatus("approved");
             }
-        } catch (error: any) {
+        } catch (error) {
             toast.dismiss("approval-toast");
-            toast.error(error?.message || "Something went wrong while approving device");
+            toast.error(errorMessage(error, "Something went wrong while approving device"));
         } finally {
             setIsProcessing({ approve: false, deny: false });
         }
@@ -115,14 +118,14 @@ function DeviceApprovalContent() {
             toast.dismiss("deny-toast");
 
             if (res.error) {
-                toast.error(res.error.error_description || (res.error as any).message || "Failed to deny device");
+                toast.error(res.error.error_description || res.error.statusText || "Failed to deny device");
             } else {
                 toast.info("Device authorization denied");
                 setAuthStatus("denied");
             }
-        } catch (error: any) {
+        } catch (error) {
             toast.dismiss("deny-toast");
-            toast.error(error?.message || "Something went wrong while denying device");
+            toast.error(errorMessage(error, "Something went wrong while denying device"));
         } finally {
             setIsProcessing({ approve: false, deny: false });
         }

@@ -1,23 +1,22 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { authClient } from "@/lib/auth-client";
 import { useState, Suspense } from "react";
 
 function LoginFormContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrlParam = searchParams.get("callbackUrl");
   const currentOrigin = typeof window !== "undefined" && window.location.origin
     ? window.location.origin
     : (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000");
 
-  const targetCallback = callbackUrlParam 
-    ? (callbackUrlParam.startsWith("http") ? callbackUrlParam : `${currentOrigin}${callbackUrlParam}`)
-    : currentOrigin;
+  // Only same-site paths are accepted, so the sign-in page can't be used as an open redirect.
+  const isSafePath = Boolean(callbackUrlParam?.startsWith("/") && !callbackUrlParam.startsWith("//") && !callbackUrlParam.includes("\\"));
+  const targetCallback = isSafePath ? `${currentOrigin}${callbackUrlParam}` : currentOrigin;
 
   const [isLoading, setIsLoading] = useState(false);
 
