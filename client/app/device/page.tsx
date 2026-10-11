@@ -7,10 +7,16 @@ import { useState, useEffect, Suspense } from "react";
 import { ShieldAlert, LogIn, ArrowRight } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 
+// Formats a user code as XXXX-XXXX.
+function formatUserCode(code: string) {
+    const compact = code.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    return compact.length > 4 ? `${compact.slice(0, 4)}-${compact.slice(4, 8)}` : compact;
+}
+
 function DeviceAuthorizationForm() {
     const searchParams = useSearchParams();
     const initialCode = searchParams.get("user_code") || "";
-    const [userCode, setUserCode] = useState(initialCode);
+    const [userCode, setUserCode] = useState(() => formatUserCode(initialCode));
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -23,16 +29,6 @@ function DeviceAuthorizationForm() {
             router.replace(`/approve?user_code=${encodeURIComponent(initialCode)}`);
         }
     }, [initialCode, session, isSessionPending, router]);
-
-    useEffect(() => {
-        if (initialCode) {
-            let formatted = initialCode.toUpperCase().replace(/[^A-Z0-9]/g, "");
-            if (formatted.length > 4 && !formatted.includes("-")) {
-                formatted = formatted.slice(0, 4) + "-" + formatted.slice(4, 8);
-            }
-            setUserCode(formatted);
-        }
-    }, [initialCode]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -52,19 +48,15 @@ function DeviceAuthorizationForm() {
 
             // Redirect to approve page with user_code
             router.push(`/approve?user_code=${encodeURIComponent(formattedWithHyphen)}`);
-        } catch (err: any) {
-            setError(err?.message || "An unexpected error occurred.");
+        } catch (err) {
+            setError(err instanceof Error && err.message ? err.message : "An unexpected error occurred.");
         } finally {
             setIsLoading(false);
         }
     };
 
     const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-        if (value.length > 4) {
-            value = value.slice(0, 4) + "-" + value.slice(4, 8);
-        }
-        setUserCode(value);
+        setUserCode(formatUserCode(e.target.value));
     };
 
     if (isSessionPending) {

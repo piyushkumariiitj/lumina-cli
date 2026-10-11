@@ -10,6 +10,7 @@ import { select, isCancel } from "@clack/prompts";
 import { startChat } from "../../chat/chat-with-ai.js";
 import { startToolChat } from "../../chat/chat-with-ai-tool.js";
 import { startAgentChat } from "../../chat/chat-with-ai-agent.js";
+import { taskAction } from "./task.js";
 import { renderBanner, renderUserCard, renderGoodbye, renderError } from "../../ui/components.js";
 import { whoamiAction } from "../auth/login.js";
 import { theme } from "../../ui/theme.js";
@@ -117,6 +118,11 @@ export const wakeUpAction = async () => {
         hint: "Live web search, code execution, git, workspace reader",
       },
       {
+        value: "task",
+        label: "🛠  Code Task",
+        hint: "Plan, edit and validate a change in this repository",
+      },
+      {
         value: "agent",
         label: "🤖 Agent",
         hint: "Autonomous project architect & code generator",
@@ -144,6 +150,9 @@ export const wakeUpAction = async () => {
       break;
     case "tool":
       await startToolChat();
+      break;
+    case "task":
+      await taskAction([], { banner: false });
       break;
     case "agent":
       await startAgentChat();
