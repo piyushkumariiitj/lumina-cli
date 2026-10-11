@@ -1,78 +1,25 @@
 import "dotenv/config";
-import express from "express";
-import { toNodeHandler, fromNodeHeaders } from "better-auth/node";
-import cors from "cors";
 import { auth } from "./lib/auth.js";
+import { createApp } from "./app.js";
+import { loadServerConfig } from "./server/config.js";
 
-const app = express();
+const config = loadServerConfig(process.env);
+const app = createApp({ auth, config });
 
-const CLIENT_URL = (process.env.CLIENT_URL || "https://luminacli.vercel.app").replace(/\/+$/, "");
+if (!config.groqApiKey) {
+  console.warn("[server] GROQ_API_KEY is not set: /api/ai/proxy will answer 503.");
+}
+if (config.legacyKeyHandout) {
+  console.warn("[server] LUMINA_LEGACY_KEY_HANDOUT=true: /api/ai/config returns the provider key to signed-in users.");
+}
 
-// Configure CORS middleware supporting both local dev and production
-const allowedOrigins = Array.from(
-  new Set(["http://localhost:3000", "https://luminacli.vercel.app", CLIENT_URL].filter(Boolean))
-);
-
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like CLI, curl, or mobile) or if in allowed list
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(null, true);
-    },
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
-  })
-);
-
-app.all("/api/auth/*splat", toNodeHandler(auth));
-
-app.use(express.json());
-
-app.get("/", (req, res) => {
-  res.redirect(CLIENT_URL);
+const server = app.listen(config.port, () => {
+  console.log(`Server is running on port ${config.port}`);
 });
 
-app.get("/api/me", async (req, res) => {
- 	const session = await auth.api.getSession({
-      headers: fromNodeHeaders(req.headers),
-    });
-	return res.json(session);
-});
-
-app.get("/api/ai/config", async (req, res) => {
-  try {
-    const session = await auth.api.getSession({
-      headers: fromNodeHeaders(req.headers),
-    });
-
-    if (!session?.user) {
-      return res.status(401).json({ error: "Unauthorized. Please run 'lumina login' first." });
-    }
-
-    return res.json({
-      apiKey: process.env.GROQ_API_KEY || "",
-      model: process.env.LUMINA_MODEL || "openai/gpt-oss-120b",
-      fallbackModel: process.env.LUMINA_FALLBACK_MODEL || "openai/gpt-oss-20b",
-    });
-  } catch (err) {
-    return res.status(500).json({ error: "Failed to retrieve AI configuration." });
-  }
-});
-
-app.get("/device", async (req, res) => {
-	const { user_code } = req.query;
-  res.redirect(`${CLIENT_URL}/device?user_code=${user_code || ""}`);
-});
-
-app.get("/health", (req, res) => {
-  res.send("OK");
-});
-
-const PORT = process.env.PORT || 3005;
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+for (const signal of ["SIGTERM", "SIGINT"]) {
+  process.on(signal, () => {
+    server.close(() => process.exit(0));
+    setTimeout(() => process.exit(0), 10_000).unref();
+  });
+}

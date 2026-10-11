@@ -2,12 +2,18 @@ import "dotenv/config";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from "./db.js";
-import { deviceAuthorization } from "better-auth/plugins";
+import { bearer, deviceAuthorization } from "better-auth/plugins";
 
 const CLIENT_URL = (process.env.CLIENT_URL || "https://luminacli.vercel.app").replace(/\/+$/, "");
 
+// Fail closed: a missing secret used to fall back to a string published in this repo,
+// which would let anyone forge session cookies.
+if (!process.env.BETTER_AUTH_SECRET?.trim()) {
+  throw new Error("BETTER_AUTH_SECRET is not set. Generate one with: openssl rand -base64 32");
+}
+
 export const auth = betterAuth({
-  secret: process.env.BETTER_AUTH_SECRET || "lumina_secret_key_prod_auth",
+  secret: process.env.BETTER_AUTH_SECRET,
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
@@ -30,9 +36,12 @@ export const auth = betterAuth({
     },
   },
   plugins: [
-    deviceAuthorization({ 
-      verificationUri: `${CLIENT_URL}/device`, 
-    }), 
+    deviceAuthorization({
+      verificationUri: `${CLIENT_URL}/device`,
+    }),
+    // The CLI authenticates with `Authorization: Bearer <session token>` from the device flow.
+    // Without this plugin Better Auth ignores that header and every CLI request is anonymous.
+    bearer(),
   ],
   socialProviders: {
     github: {

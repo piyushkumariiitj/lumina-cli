@@ -1,5 +1,8 @@
+import { createRequire } from "module";
 import { config } from "../../config/groq.config.js";
 import { theme, symbols, tag } from "./theme.js";
+
+const { version: PACKAGE_VERSION } = createRequire(import.meta.url)("../../../package.json");
 
 /**
  * Minimalist Header for Lumina CLI
@@ -8,7 +11,7 @@ import { theme, symbols, tag } from "./theme.js";
 export function renderBanner() {
   const glyph = theme.accentBold("✦");
   const brand = theme.whiteBold("Lumina CLI");
-  const version = theme.muted("v1.0.0");
+  const version = theme.muted(`v${PACKAGE_VERSION}`);
   const model = theme.muted(`• ${config.model || "Groq LLM"}`);
 
   console.log(`\n${glyph} ${brand} ${version} ${model}\n`);

@@ -9,7 +9,8 @@ const rootEnvPath = path.resolve(__dirname, "../../../.env");
 
 dotenv.config({ path: envPath, quiet: true });
 dotenv.config({ path: rootEnvPath, quiet: true });
-dotenv.config({ quiet: true });
+// Deliberately not loading .env from process.cwd(): that is the user's project, and its
+// variables (e.g. BETTER_AUTH_URL, GROQ_API_KEY) must not configure Lumina itself.
 
 export const config = {
   get groqApiKey() {
