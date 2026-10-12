@@ -160,7 +160,9 @@ async function phase2() {
     const pass = Number(r.out.match(/^# pass (\d+)/m)?.[1] ?? 0);
     const fail = Number(r.out.match(/^# fail (\d+)/m)?.[1] ?? -1);
     if (r.code !== 0 || fail !== 0) {
-      const failed = [...r.out.matchAll(/^not ok \d+ - (.+)$/gm)].map((m) => m[1]);
+      const failed = [...r.out.matchAll(/^\s*not ok \d+ - (.+)$/gm)].map((m) => m[1]);
+      // Print the failing subtests and their errors so CI logs show what broke.
+      console.log(r.out.split("\n").filter((l) => /not ok|error:|expected|actual|timed out/.test(l)).slice(0, 40).join("\n"));
       throw new Error(`${fail} failing: ${failed.join("; ")}`);
     }
     return `${pass} tests`;
