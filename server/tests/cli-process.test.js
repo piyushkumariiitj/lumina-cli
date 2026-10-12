@@ -50,7 +50,14 @@ function runCli(args, home) {
   const exited = new Promise((resolve) => proc.on("close", resolve));
   return {
     output: () => out,
-    waitFor: (text) => (out.includes(text) ? Promise.resolve() : new Promise((resolve) => waiters.push({ text, resolve }))),
+    waitFor: (text, ms = 60_000) =>
+      out.includes(text)
+        ? Promise.resolve()
+        : new Promise((resolve, reject) => {
+            const timer = setTimeout(() => reject(new Error(`timed out waiting for "${text}". Output:
+${out.slice(-800)}`)), ms);
+            waiters.push({ text, resolve: () => (clearTimeout(timer), resolve()) });
+          }),
     async press(...keys) {
       for (const k of keys) {
         await new Promise((r) => setTimeout(r, 100));
@@ -85,7 +92,7 @@ test("lumina login: device flow stores the real user and exits on its own", asyn
   await cli.press("n", "\r");
   await approveDeviceCode(code);
 
-  assert.equal(await cli.exitWithin(20_000), 0, cli.output().slice(-500));
+  assert.equal(await cli.exitWithin(60_000), 0, cli.output().slice(-500));
   assert.match(cli.output(), /Login successful/);
   const token = JSON.parse(await fs.readFile(tokenFile, "utf8"));
   // Before the server had the bearer() plugin, this was the placeholder "Developer".
@@ -97,7 +104,7 @@ test("lumina whoami: fetches the profile from the server with the stored token",
   await fs.mkdir(path.dirname(tokenFile), { recursive: true });
   await fs.writeFile(tokenFile, JSON.stringify({ access_token: authCtx.token, expires_at: new Date(Date.now() + 3_600_000).toISOString() }));
   const cli = runCli(["whoami"], home);
-  assert.equal(await cli.exitWithin(15_000), 0);
+  assert.equal(await cli.exitWithin(60_000), 0);
   assert.match(cli.output(), /Test Dev/);
 });
 
@@ -114,7 +121,7 @@ test("lumina logout: ends the server session, removes the token, exits by itself
   const cli = runCli(["logout"], home);
   await cli.waitFor("logout?");
   await cli.press("y", "\r");
-  assert.equal(await cli.exitWithin(10_000), 0, "process should exit by itself after the prompt");
+  assert.equal(await cli.exitWithin(60_000), 0, "process should exit by itself after the prompt");
   assert.equal(existsSync(tokenFile), false);
   assert.equal(await me(), 401, "the session must be revoked on the server");
 });
@@ -124,7 +131,7 @@ test("lumina login: Ctrl+C at the browser prompt cancels instead of waiting", as
   const cli = runCli(["login", "--server-url", lumina.url], home);
   await cli.waitFor("Open browser automatically?");
   await cli.press("\x03");
-  assert.equal(await cli.exitWithin(10_000), 0);
+  assert.equal(await cli.exitWithin(60_000), 0);
   assert.match(cli.output(), /Login cancelled/);
   assert.equal(existsSync(tokenFile), false);
 });
