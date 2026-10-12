@@ -101,15 +101,22 @@ test("lumina whoami: fetches the profile from the server with the stored token",
   assert.match(cli.output(), /Test Dev/);
 });
 
-test("lumina logout: removes the token and exits without stdin being closed", async () => {
+test("lumina logout: ends the server session, removes the token, exits by itself", async () => {
   const { home, tokenFile } = await freshHome();
+  const ctx = await authCtx.auth.$context;
+  const user = (await ctx.internalAdapter.findUserByEmail("dev@example.com")).user;
+  const { token } = await ctx.internalAdapter.createSession(user.id);
+  const me = () => fetch(`${lumina.url}/api/me`, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.status);
+  assert.equal(await me(), 200);
+
   await fs.mkdir(path.dirname(tokenFile), { recursive: true });
-  await fs.writeFile(tokenFile, JSON.stringify({ access_token: "x", user: { name: "Test Dev" } }));
+  await fs.writeFile(tokenFile, JSON.stringify({ access_token: token, user: { name: "Test Dev" } }));
   const cli = runCli(["logout"], home);
   await cli.waitFor("logout?");
   await cli.press("y", "\r");
   assert.equal(await cli.exitWithin(10_000), 0, "process should exit by itself after the prompt");
   assert.equal(existsSync(tokenFile), false);
+  assert.equal(await me(), 401, "the session must be revoked on the server");
 });
 
 test("lumina login: Ctrl+C at the browser prompt cancels instead of waiting", async () => {

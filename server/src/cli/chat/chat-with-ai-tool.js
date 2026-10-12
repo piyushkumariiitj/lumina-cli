@@ -13,6 +13,7 @@ import {
   setCodeExecutionApprover,
 } from "../../config/tool.config.js";
 import { renderMarkdown } from "../ui/markdown.js";
+import { printPaged } from "../ui/pager.js";
 import { 
   renderSessionHeader, 
   renderToolExecution, 
@@ -184,7 +185,8 @@ async function getAIResponse(conversationId, userQuery = "") {
     spinner.stop();
 
     if (result.content) {
-      console.log(`\n${theme.agentBold("Lumina:")}\n${renderMarkdown(result.content)}\n`);
+      console.log(`\n${theme.agentBold("Lumina:")}`);
+      await printPaged(`${renderMarkdown(result.content)}\n`);
     } else {
       console.log("\n");
     }

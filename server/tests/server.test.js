@@ -218,3 +218,25 @@ test("rate limiter caps concurrency and releases slots", () => {
   t += 60_001;
   assert.equal(fresh.acquire("x").ok, true);
 });
+
+test("signing out of all devices on the web also ends CLI sessions", async () => {
+  const separate = await createTestAuth(); // own user/sessions, so other tests are unaffected
+  const app = await startLumina({ auth: separate.auth, upstreamUrl: upstream.url });
+  try {
+    const ctx = await separate.auth.$context;
+    const cliSession = await ctx.internalAdapter.createSession(separate.user.id);
+    const me = (token) => fetch(`${app.url}/api/me`, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.status);
+    assert.equal(await me(cliSession.token), 200);
+
+    // What the website's "Sign out of all devices" button calls (authClient.revokeSessions()).
+    const res = await fetch(`${app.url}/api/auth/revoke-sessions`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${separate.token}`, "Content-Type": "application/json" },
+      body: "{}",
+    });
+    assert.equal(res.status, 200);
+    assert.equal(await me(cliSession.token), 401, "the terminal session is revoked");
+  } finally {
+    await app.close();
+  }
+});
