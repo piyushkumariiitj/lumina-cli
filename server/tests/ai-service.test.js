@@ -22,6 +22,7 @@ const { availableTools, enableTools, getEnabledTools, resetTools } = await impor
 let authCtx;
 let upstream;
 let lumina;
+const toolRejections = new Map();
 
 async function writeToken(fields) {
   const dir = path.join(home, ".better-auth");
@@ -51,6 +52,15 @@ before(async () => {
     if (String(lastUser).includes("trigger-429") && body.model === "openai/gpt-oss-120b") {
       res.writeHead(429, { "Content-Type": "application/json" });
       return res.end(JSON.stringify({ error: { message: "Rate limit reached for model", type: "rate_limit", code: "rate_limit_exceeded" } }));
+    }
+    // Simulate Groq rejecting a malformed tool call (HTTP 400, code tool_use_failed).
+    const rejectTimes = String(lastUser).match(/reject-tool-call-(\d)/)?.[1];
+    if (rejectTimes && body.tools && last.role !== "tool") {
+      toolRejections.set(lastUser, (toolRejections.get(lastUser) ?? 0) + 1);
+      if (toolRejections.get(lastUser) <= Number(rejectTimes)) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ error: { message: "Tool call validation failed: parameters did not match schema", type: "invalid_request_error", code: "tool_use_failed" } }));
+      }
     }
     if (body.tools && last.role !== "tool") return sseToolCall(res, "calculator", { expression: "6 * 7" });
     if (last.role === "tool") return writeSse(res, [`The answer is ${JSON.parse(last.content).result}.`]);
@@ -104,6 +114,23 @@ test("tools mode runs a real multi-step tool loop with non-empty schemas", async
     const [first, second] = upstream.requests.slice(before);
     assert.deepEqual(Object.keys(first.body.tools[0].function.parameters.properties), ["expression"]);
     assert.equal(second.body.messages.at(-1).role, "tool", "tool result was sent back to the model");
+  } finally {
+    resetTools();
+  }
+});
+
+test("a tool call rejected by the provider is retried once, then reported clearly", async () => {
+  await validToken();
+  enableTools(["calculator"]);
+  try {
+    const ai = new AIService();
+    const ok = await ai.sendMessage([{ role: "user", content: "reject-tool-call-1: what is 6 times 7?" }], () => {}, getEnabledTools());
+    assert.equal(ok.content, "The answer is 42.");
+
+    await assert.rejects(
+      ai.sendMessage([{ role: "user", content: "reject-tool-call-2: what is 6 times 7?" }], () => {}, getEnabledTools()),
+      /invalid tool call twice/
+    );
   } finally {
     resetTools();
   }

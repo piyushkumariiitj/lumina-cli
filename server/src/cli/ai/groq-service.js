@@ -153,6 +153,8 @@ export class AIService {
         return new Error(`Model '${this.modelName}' is unavailable right now (${classified.message}).`);
       case "timeout":
         return new Error("The model took too long to respond. Please try again.");
+      case "tool_use_failed":
+        return new Error("The model made an invalid tool call twice in a row. Please try again or rephrase your request.");
       default:
         return classified.cause instanceof Error ? classified.cause : new Error(classified.message);
     }
@@ -166,8 +168,17 @@ export class AIService {
    * @param {Function} onToolCall - Callback for tool calls
    * @param {Function} onToolResult - Callback for tool results (and tool errors)
    * @param {boolean} isFallback - Whether this is the fallback-model attempt
+   * @param {boolean} isToolRetry - Whether this is the retry after a rejected (malformed) tool call
    */
-  async sendMessage(messages, onChunk, tools = undefined, onToolCall = undefined, onToolResult = undefined, isFallback = false) {
+  async sendMessage(
+    messages,
+    onChunk,
+    tools = undefined,
+    onToolCall = undefined,
+    onToolResult = undefined,
+    isFallback = false,
+    isToolRetry = false
+  ) {
     await this.ensureApiKey();
 
     const validMessages = (Array.isArray(messages) ? messages : [])
@@ -244,11 +255,16 @@ export class AIService {
       return { content: fullResponse, finishReason, usage, toolCalls, toolResults, steps: steps || [] };
     } catch (error) {
       const kind = classifyModelError(error).kind;
+      // The provider rejects tool calls whose arguments don't match the schema; models
+      // usually get it right on a second attempt.
+      if (kind === "tool_use_failed" && !isToolRetry) {
+        return this.sendMessage(messages, onChunk, tools, onToolCall, onToolResult, isFallback, true);
+      }
       if (!isFallback && this.fallbackModel && FALLBACK_KINDS.has(kind)) {
         console.log(
           chalk.yellow(`\n⚠️ Primary model (${this.modelName}) unavailable (${kind}). Trying fallback model (${this.fallbackModelName})...\n`)
         );
-        return this.sendMessage(messages, onChunk, tools, onToolCall, onToolResult, true);
+        return this.sendMessage(messages, onChunk, tools, onToolCall, onToolResult, true, isToolRetry);
       }
       throw this.handleAIError(error);
     }

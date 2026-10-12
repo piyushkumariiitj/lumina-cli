@@ -6,7 +6,7 @@ import { createApp } from "../src/app.js";
 import { loadServerConfig } from "../src/server/config.js";
 
 /** A real Better Auth instance (same plugins as production) backed by memory. */
-export async function createTestAuth() {
+export async function createTestAuth({ deviceInterval = "5s" } = {}) {
   const db = { user: [], session: [], account: [], verification: [], deviceCode: [] };
   const auth = betterAuth({
     secret: "test-secret-".padEnd(40, "x"),
@@ -14,7 +14,7 @@ export async function createTestAuth() {
     basePath: "/api/auth",
     database: memoryAdapter(db),
     logger: { disabled: true },
-    plugins: [deviceAuthorization(), bearer()],
+    plugins: [deviceAuthorization({ interval: deviceInterval }), bearer()],
   });
   const ctx = await auth.$context;
   const user = await ctx.internalAdapter.createUser({ name: "Test Dev", email: "dev@example.com", emailVerified: true });

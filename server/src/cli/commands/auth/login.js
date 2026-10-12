@@ -105,7 +105,11 @@ export async function loginAction(opts) {
       initialValue: true,
     });
 
-    if (!isCancel(shouldOpen) && shouldOpen) {
+    if (isCancel(shouldOpen)) {
+      cancel("Login cancelled.");
+      process.exit(0);
+    }
+    if (shouldOpen) {
       await open(authUrl);
     }
 

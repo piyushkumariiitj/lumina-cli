@@ -54,7 +54,10 @@ async function main() {
     program.help();
   });
 
-  program.parse(process.argv);
+  await program.parseAsync(process.argv);
+  // Interactive prompts leave stdin referenced; release it so the process exits once the
+  // command is done (otherwise it hangs when stdin is a pipe, e.g. in scripts or CI).
+  process.stdin.destroy();
 }
 
 main().catch((err) => {
