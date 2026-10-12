@@ -45,6 +45,7 @@ export async function loginAction(opts) {
   const clientId = options.clientId || CLIENT_ID;
 
   renderBanner();
+  console.log(`  ${theme.muted("Server:")} ${theme.white(serverUrl)}\n`);
 
   const existingToken = await getStoredToken();
   const expired = await isTokenExpired();
