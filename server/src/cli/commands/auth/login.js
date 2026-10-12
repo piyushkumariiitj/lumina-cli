@@ -45,6 +45,7 @@ export async function loginAction(opts) {
   const clientId = options.clientId || CLIENT_ID;
 
   renderBanner();
+  console.log(`  ${theme.muted("Server:")} ${theme.white(serverUrl)}\n`);
 
   const existingToken = await getStoredToken();
   const expired = await isTokenExpired();
@@ -105,7 +106,11 @@ export async function loginAction(opts) {
       initialValue: true,
     });
 
-    if (!isCancel(shouldOpen) && shouldOpen) {
+    if (isCancel(shouldOpen)) {
+      cancel("Login cancelled.");
+      process.exit(0);
+    }
+    if (shouldOpen) {
       await open(authUrl);
     }
 

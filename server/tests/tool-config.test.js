@@ -29,9 +29,9 @@ test("workspace_reader is confined to the current project and refuses secrets", 
   process.chdir(dir);
   t.after(() => process.chdir(cwd));
 
-  assert.equal((await runTool("workspace_reader", { filePath: "src/a.js" })).content, "hello\n");
-  assert.match((await runTool("workspace_reader", { filePath: "../outside.txt" })).error, /outside the workspace/);
-  assert.match((await runTool("workspace_reader", { filePath: ".env" })).error, /secret/);
+  assert.equal((await runTool("workspace_reader", { path: "src/a.js" })).content, "hello\n");
+  assert.match((await runTool("workspace_reader", { path: "../outside.txt" })).error, /outside the workspace/);
+  assert.match((await runTool("workspace_reader", { path: ".env" })).error, /secret/);
 });
 
 test("code execution needs approval and never goes through a shell", async (t) => {

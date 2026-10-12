@@ -236,3 +236,32 @@ real `@clack/prompts` UI with simulated keystrokes.
 **Still not verified:** Linux/macOS (CI covers it once pushed; WSL here has no Node). The live harness-driven
 repair path: in live runs the model fixed failures itself before finishing, so that path is covered by scripted tests only.
 The device-flow login against a deployed server with real GitHub OAuth (needs a browser).
+
+---
+
+## 9. End-to-end testing of every feature (2026-10-13)
+
+The real `lumina` binary was driven through its prompts (keystrokes over stdin) against the real Lumina app code
+with an in-memory database, and real Groq calls went through the proxy with no key on the client.
+**19/19 scenarios pass:** `--help`/`--version`; `whoami`/`wakeup` while logged out; device-code login (code claimed and
+approved via the API, real user stored); `whoami` from the token and fetched from `/api/me`; logging in while already signed in;
+wakeup → Status and → Exit; `/api/ai/config`; Chat mode with conversation memory; Tools mode with all 7 tools plus the
+out-of-project refusal; Code Task from the menu with plan approval and "allow for this task" command approval (tests
+fixed, the user's uncommitted edit kept, nothing committed); `lumina task` request-changes → plan-only, and cancel;
+the app scaffolder; `logout`; a login denied in the browser; Ctrl+C during login.
+
+Bugs found and fixed:
+
+* **CLI never exited after a prompt when stdin is a pipe** (scripts, CI, `echo y | lumina logout`): `@clack/prompts`
+  leaves stdin referenced. `main.js` now awaits the command and releases stdin.
+* **Ctrl+C at "Open browser automatically?" didn't cancel `lumina login`**; it kept polling. It now exits.
+* **Tools mode: the model called `workspace_reader` with `path` instead of `filePath`**; Groq rejected the whole turn
+  (`tool_use_failed`) and the user saw a raw error. The parameter is now `path`, and a rejected tool call is retried
+  once before a clear error is shown.
+
+Regression tests: `tests/cli-process.test.js` (spawns the CLI: login, whoami, logout exit, Ctrl+C), plus a
+tool-call-retry test in `tests/ai-service.test.js`. 79 tests in total.
+
+Not covered: real GitHub OAuth sign-in on the website (needs the Claude in Chrome extension or a manual check), and
+the deployed server, which still ran the old code at the time of testing. Local note: Windows reserves TCP ports
+2946–3145 on the test machine, so the default dev ports 3000/3005 cannot bind there.

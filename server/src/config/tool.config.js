@@ -195,9 +195,9 @@ export const availableTools = [
       tool({
         description: "Read a text file inside the current project directory (paths outside it and secret files are refused).",
         inputSchema: z.object({
-          filePath: z.string().min(1).describe("Path relative to the current project directory"),
+          path: z.string().min(1).describe("Path relative to the current project directory"),
         }),
-        execute: async ({ filePath }) => {
+        execute: async ({ path: filePath }) => {
           try {
             const workspace = await Workspace.open(process.cwd());
             const { abs, rel } = await workspace.resolve(filePath);
