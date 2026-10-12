@@ -5,6 +5,7 @@ import { ChatService } from "../../services/chat-services.js";
 import { getStoredToken } from "../../lib/token.js";
 import prisma from "../../lib/db.js";
 import { renderMarkdown } from "../ui/markdown.js";
+import { printPaged } from "../ui/pager.js";
 import { 
   renderSessionHeader, 
   renderError, 
@@ -115,7 +116,8 @@ async function getAIResponse(conversationId) {
     spinner.stop();
 
     if (result.content) {
-      console.log(`\n${theme.agentBold("Lumina:")}\n${renderMarkdown(result.content)}\n`);
+      console.log(`\n${theme.agentBold("Lumina:")}`);
+      await printPaged(`${renderMarkdown(result.content)}\n`);
     } else {
       console.log("\n");
     }

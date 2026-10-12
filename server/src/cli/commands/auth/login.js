@@ -253,9 +253,27 @@ export async function logoutAction() {
     process.exit(0);
   }
 
+  // End the session on the server too, so the token stops working even if a copy exists.
+  let revoked = false;
+  if (token.access_token) {
+    try {
+      const serverUrl = await resolveServerUrl();
+      const res = await fetch(`${serverUrl}/api/auth/sign-out`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token.access_token}`, "Content-Type": "application/json" },
+        body: "{}",
+        signal: AbortSignal.timeout(5000),
+      });
+      revoked = res.ok;
+    } catch {
+      // Offline: still remove the local credentials.
+    }
+  }
+
   const cleared = await clearStoredToken();
 
   if (cleared) {
+    if (!revoked) console.log(theme.muted("  (Could not reach the server; the session will expire on its own.)"));
     renderGoodbye("Successfully logged out. See you next time!");
   } else {
     console.log(theme.warning("Could not clear token file.\n"));

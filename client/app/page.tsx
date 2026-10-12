@@ -70,6 +70,18 @@ export default function Home() {
             Sign Out
           </Button>
 
+          {/* Ends every session for this account, including `lumina login` sessions in terminals */}
+          <Button
+            variant="outline"
+            onClick={async () => {
+              await authClient.revokeSessions();
+              router.push("/sign-in");
+            }}
+            className="w-full h-11 border-red-600/60 text-red-400 hover:bg-red-950 font-semibold rounded-lg transition-colors"
+          >
+            Sign out of all devices (including terminal)
+          </Button>
+
           {/* Decorative divider */}
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px border-t border-dashed border-zinc-700"></div>
